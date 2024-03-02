@@ -21,12 +21,11 @@ public class User {
     )
 
     private Long id;
-
     @Email
     private String email;
-
     private String address;
-
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Device> devices = new ArrayList<>();
 
     public User(){}
 
@@ -46,5 +45,23 @@ public class User {
     public String getAddress() {return address;}
 
     public void setAddress(String address) {this.address = address;}
+
+    public List<Device> getDevices() {
+        return devices;
+    }
+
+    public void setDevices(List<Device> devices) {
+        this.devices = devices;
+    }
+
+    public void addDevice(Device device) {
+        devices.add(device);
+        device.setUser(this);
+    }
+
+    public void removeDevice(Device device) {
+        devices.remove(device);
+        device.setUser(null);
+    }
 
 }

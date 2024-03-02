@@ -4,6 +4,7 @@ import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Repository.TrafficDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,5 +24,10 @@ public class TrafficDataService {
 
     public void addNewTrafficData(TrafficData trafficData){
         trafficDataRepository.save(trafficData);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TrafficData> getTrafficDataByDeviceId(Long deviceId) {
+        return trafficDataRepository.findByDeviceId(deviceId);
     }
 }
