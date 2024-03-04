@@ -70,6 +70,49 @@ const DiscoverDevice = () => {
     console.debug('[handleStopScan] scan is stopped.');
   };
 
+  const handleDiscoverPeripheral = (peripheral: Peripheral) => {
+    console.debug('[handleDiscoverPeripheral] new BLE peripheral=', peripheral);
+    if (!peripheral.name) {
+      // peripheral.name = 'NO NAME';
+      return;
+    }
+    setPeripherals(map => {
+      return new Map(map.set(peripheral.id, peripheral));
+    });
+  };
+
+  const retrieveConnected = async () => {
+    try {
+      const connectedPeripherals = await BleManager.getConnectedPeripherals();
+      if (connectedPeripherals.length === 0) {
+        console.warn('[retrieveConnected] No connected peripherals found.');
+        return;
+      }
+
+      console.debug(
+        '[retrieveConnected] connectedPeripherals',
+        connectedPeripherals,
+      );
+
+      for (var i = 0; i < connectedPeripherals.length; i++) {
+        var peripheral = connectedPeripherals[i];
+        setPeripherals(map => {
+          let p = map.get(peripheral.id);
+          if (p) {
+            p.connected = true;
+            return new Map(map.set(p.id, p));
+          }
+          return map;
+        });
+      }
+    } catch (error) {
+      console.error(
+        '[retrieveConnected] unable to retrieve connected peripherals.',
+        error,
+      );
+    }
+  };
+
   useEffect(() => {
     try {
       BleManager.start({showAlert: false})
@@ -83,10 +126,10 @@ const DiscoverDevice = () => {
     }
 
     const listeners = [
-      // bleManagerEmitter.addListener(
-      //   'BleManagerDiscoverPeripheral',
-      //   handleDiscoverPeripheral,
-      // ),
+      bleManagerEmitter.addListener(
+        'BleManagerDiscoverPeripheral',
+        handleDiscoverPeripheral,
+      ),
       bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan),
       // bleManagerEmitter.addListener(
       //   'BleManagerDisconnectPeripheral',
@@ -268,22 +311,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     padding: 10,
+    color: 'black',
   },
   rssi: {
     fontSize: 12,
     textAlign: 'center',
     padding: 2,
+    color: 'black',
   },
   peripheralId: {
     fontSize: 12,
     textAlign: 'center',
     padding: 2,
     paddingBottom: 20,
+    color: 'black',
   },
   row: {
     marginLeft: 10,
     marginRight: 10,
     borderRadius: 20,
+    color: 'red',
     ...boxShadow,
   },
   noPeripherals: {
