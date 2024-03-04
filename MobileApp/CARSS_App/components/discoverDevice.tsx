@@ -1,0 +1,297 @@
+import React, { useEffect, useState } from "react";
+import {
+  FlatList,
+  NativeEventEmitter,
+  NativeModules, PermissionsAndroid, Platform,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text, TouchableHighlight,
+  View
+} from "react-native";
+
+const SECONDS_TO_SCAN_FOR = 3;
+const SERVICE_UUIDS: string[] = [];
+const ALLOW_DUPLICATES = true;
+
+import BleManager, {
+  BleDisconnectPeripheralEvent,
+  BleManagerDidUpdateValueForCharacteristicEvent,
+  BleScanCallbackType,
+  BleScanMatchMode,
+  BleScanMode,
+  Peripheral,
+} from 'react-native-ble-manager';
+import { Colors } from "react-native/Libraries/NewAppScreen";
+const BleManagerModule = NativeModules.BleManager;
+const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+
+declare module 'react-native-ble-manager' {
+  // enrich local contract with custom state properties needed by App.tsx
+  interface Peripheral {
+    connected?: boolean;
+    connecting?: boolean;
+  }
+}
+
+const DiscoverDevice = () => {
+  const [isScanning, setIsScanning] = useState(false);
+  const [peripherals, setPeripherals] = useState(
+    new Map<Peripheral['id'], Peripheral>(),
+  );
+
+  const startScan = () => {
+    if (!isScanning) {
+      // reset found peripherals before scan
+      setPeripherals(new Map<Peripheral['id'], Peripheral>());
+
+      try {
+        console.debug('[startScan] starting scan...');
+        setIsScanning(true);
+        BleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
+          matchMode: BleScanMatchMode.Sticky,
+          scanMode: BleScanMode.LowLatency,
+          callbackType: BleScanCallbackType.AllMatches,
+        })
+          .then(() => {
+            console.debug('[startScan] scan promise returned successfully.');
+          })
+          .catch((err: any) => {
+            console.error('[startScan] ble scan returned in error', err);
+          });
+      } catch (error) {
+        console.error('[startScan] ble scan error thrown', error);
+      }
+    }
+  };
+
+  const handleStopScan = () => {
+    setIsScanning(false);
+    console.debug('[handleStopScan] scan is stopped.');
+  };
+
+  useEffect(() => {
+    try {
+      BleManager.start({showAlert: false})
+        .then(() => console.debug('BleManager started.'))
+        .catch((error: any) =>
+          console.error('BeManager could not be started.', error),
+        );
+    } catch (error) {
+      console.error('unexpected error starting BleManager.', error);
+      return;
+    }
+
+    const listeners = [
+      // bleManagerEmitter.addListener(
+      //   'BleManagerDiscoverPeripheral',
+      //   handleDiscoverPeripheral,
+      // ),
+      bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan),
+      // bleManagerEmitter.addListener(
+      //   'BleManagerDisconnectPeripheral',
+      //   handleDisconnectedPeripheral,
+      // ),
+      // bleManagerEmitter.addListener(
+      //   'BleManagerDidUpdateValueForCharacteristic',
+      //   handleUpdateValueForCharacteristic,
+      // ),
+      // bleManagerEmitter.addListener(
+      //   'BleManagerConnectPeripheral',
+      //   handleConnectPeripheral,
+      // ),
+    ];
+
+    handleAndroidPermissions();
+
+    return () => {
+      console.debug('[app] main component unmounting. Removing listeners...');
+      for (const listener of listeners) {
+        listener.remove();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleAndroidPermissions = () => {
+    if (Platform.OS === 'android' && Platform.Version >= 31) {
+      PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      ]).then(result => {
+        if (result) {
+          console.debug(
+            '[handleAndroidPermissions] User accepts runtime permissions android 12+',
+          );
+        } else {
+          console.error(
+            '[handleAndroidPermissions] User refuses runtime permissions android 12+',
+          );
+        }
+      });
+    } else if (Platform.OS === 'android' && Platform.Version >= 23) {
+      PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      ).then(checkResult => {
+        if (checkResult) {
+          console.debug(
+            '[handleAndroidPermissions] runtime permission Android <12 already OK',
+          );
+        } else {
+          PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          ).then(requestResult => {
+            if (requestResult) {
+              console.debug(
+                '[handleAndroidPermissions] User accepts runtime permission android <12',
+              );
+            } else {
+              console.error(
+                '[handleAndroidPermissions] User refuses runtime permission android <12',
+              );
+            }
+          });
+        }
+      });
+    }
+  };
+
+  const renderItem = ({item}: {item: Peripheral}) => {
+    const backgroundColor = item.connected ? '#069400' : Colors.white;
+    return (
+      <TouchableHighlight
+        underlayColor="#0082FC"
+        // onPress={() => togglePeripheralConnection(item)}
+      >
+        <View style={[styles.row, {backgroundColor}]}>
+          <Text style={styles.peripheralName}>
+            {/* completeLocalName (item.name) & shortAdvertisingName (advertising.localName) may not always be the same */}
+            {item.name} - {item?.advertising?.localName}
+            {item.connecting && ' - Connecting...'}
+          </Text>
+          <Text style={styles.rssi}>RSSI: {item.rssi}</Text>
+          <Text style={styles.peripheralId}>{item.id}</Text>
+        </View>
+      </TouchableHighlight>
+    );
+  };
+
+  return <>
+      <SafeAreaView>
+        <Pressable onPress={startScan}>
+          <Text style={styles.scanButtonText}>
+            {isScanning ? 'Scanning...' : 'Scan Bluetooth'}
+          </Text>
+        </Pressable>
+
+        {Array.from(peripherals.values()).length === 0 && (
+          <View style={styles.row}>
+            <Text style={styles.noPeripherals}>
+              No Peripherals, press "Scan Bluetooth" above.
+            </Text>
+          </View>
+        )}
+
+        <FlatList
+          data={Array.from(peripherals.values())}
+          contentContainerStyle={{rowGap: 12}}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+        />
+      </SafeAreaView>
+    </>
+};
+
+const boxShadow = {
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+};
+
+const styles = StyleSheet.create({
+  engine: {
+    position: 'absolute',
+    right: 10,
+    bottom: 0,
+    color: Colors.black,
+  },
+  scanButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    backgroundColor: '#0a398a',
+    margin: 10,
+    borderRadius: 12,
+    ...boxShadow,
+  },
+  scanButtonText: {
+    fontSize: 20,
+    letterSpacing: 0.25,
+    color: Colors.white,
+  },
+  body: {
+    backgroundColor: '#0082FC',
+    flex: 1,
+  },
+  sectionContainer: {
+    marginTop: 32,
+    paddingHorizontal: 24,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.black,
+  },
+  sectionDescription: {
+    marginTop: 8,
+    fontSize: 18,
+    fontWeight: '400',
+    color: Colors.dark,
+  },
+  highlight: {
+    fontWeight: '700',
+  },
+  footer: {
+    color: Colors.dark,
+    fontSize: 12,
+    fontWeight: '600',
+    padding: 4,
+    paddingRight: 12,
+    textAlign: 'right',
+  },
+  peripheralName: {
+    fontSize: 16,
+    textAlign: 'center',
+    padding: 10,
+  },
+  rssi: {
+    fontSize: 12,
+    textAlign: 'center',
+    padding: 2,
+  },
+  peripheralId: {
+    fontSize: 12,
+    textAlign: 'center',
+    padding: 2,
+    paddingBottom: 20,
+  },
+  row: {
+    marginLeft: 10,
+    marginRight: 10,
+    borderRadius: 20,
+    ...boxShadow,
+  },
+  noPeripherals: {
+    margin: 10,
+    textAlign: 'center',
+    color: Colors.white,
+  },
+});
+
+
+export default DiscoverDevice;
