@@ -23,6 +23,11 @@ public class DeviceService {
     }
 
     @Transactional
+    public Device addDevice(Device device) {
+        return deviceRepository.save(device);
+    }
+
+    @Transactional
     public Device addDeviceToOwner(Long ownerId, Device device) {
         Owner owner = ownerRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("Owner not found with id: " + ownerId));

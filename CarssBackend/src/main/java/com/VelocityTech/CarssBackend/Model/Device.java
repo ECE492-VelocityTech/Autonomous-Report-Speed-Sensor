@@ -28,8 +28,10 @@ public class Device {
 
     public Device(){}
 
-    public Device(String deviceNo) {
+    public Device(String deviceNo, String address, Owner owner) {
         this.deviceNo = deviceNo;
+        this.address = address;
+        this.owner = owner;
     }
 
     public Long getId() {
