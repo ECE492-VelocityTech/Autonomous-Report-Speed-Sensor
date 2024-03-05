@@ -1,4 +1,5 @@
 package com.VelocityTech.CarssBackend.Model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.ArrayList;
@@ -6,27 +7,20 @@ import java.util.ArrayList;
 
 
 @Entity
-@Table
+@Table(name = "device")
 public class Device {
 
     @Id
-    @SequenceGenerator(
-            name = "deviceSequence",
-            sequenceName = "deviceSequence",
-            allocationSize = 1
-    )
-
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "deviceSequence"
-    )
-
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "deviceSequence")
+    @SequenceGenerator(name = "deviceSequence", sequenceName = "deviceSequence", allocationSize = 1)
     private Long id;
+
     private String deviceNo;
     private String address;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
+    @JsonIgnore
     private Owner owner;
 
     @OneToMany(mappedBy = "device", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

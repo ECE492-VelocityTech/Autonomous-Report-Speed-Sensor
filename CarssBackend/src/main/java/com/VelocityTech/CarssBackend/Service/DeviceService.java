@@ -1,8 +1,9 @@
 package com.VelocityTech.CarssBackend.Service;
 
 import com.VelocityTech.CarssBackend.Model.Device;
-import com.VelocityTech.CarssBackend.Model.TrafficData;
+import com.VelocityTech.CarssBackend.Model.Owner;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
+import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,17 +13,20 @@ import java.util.Optional;
 @Service
 public class DeviceService {
 
-    private DeviceRepository deviceRepository;
-    private TrafficDataService trafficDataService;
+    private final DeviceRepository deviceRepository;
+    private final OwnerRepository ownerRepository;
 
     @Autowired
-    public DeviceService(DeviceRepository deviceRepository, TrafficDataService trafficDataService) {
+    public DeviceService(DeviceRepository deviceRepository, OwnerRepository ownerRepository) {
         this.deviceRepository = deviceRepository;
-        this.trafficDataService = trafficDataService;
+        this.ownerRepository = ownerRepository;
     }
 
     @Transactional
-    public Device addDevice(Device device) {
+    public Device addDeviceToOwner(Long ownerId, Device device) {
+        Owner owner = ownerRepository.findById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Owner not found with id: " + ownerId));
+        device.setOwner(owner);
         return deviceRepository.save(device);
     }
 
@@ -41,6 +45,8 @@ public class DeviceService {
         return deviceRepository.findById(id)
                 .map(device -> {
                     device.setDeviceNo(deviceDetails.getDeviceNo());
+                    device.setAddress(deviceDetails.getAddress());
+                    // Update additional fields here
                     return deviceRepository.save(device);
                 }).orElseThrow(() -> new RuntimeException("Device not found with id: " + id));
     }
@@ -48,10 +54,5 @@ public class DeviceService {
     @Transactional
     public void deleteDevice(Long id) {
         deviceRepository.deleteById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public List<TrafficData> getTrafficDataForDevice(Long deviceId) {
-        return trafficDataService.getTrafficDataByDeviceId(deviceId);
     }
 }

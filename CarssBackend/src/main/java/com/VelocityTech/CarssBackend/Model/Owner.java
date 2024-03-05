@@ -4,22 +4,14 @@ import java.util.List;
 import java.util.ArrayList;
 
 @Entity
-@Table
+@Table(name = "owner")
 public class Owner {
 
     @Id
-    @SequenceGenerator(
-            name = "OwnerSequence",
-            sequenceName = "OwnerSequence",
-            allocationSize = 1
-    )
-
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "OwnerSequence"
-    )
-
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OwnerSequence")
+    @SequenceGenerator(name = "OwnerSequence", sequenceName = "OwnerSequence", allocationSize = 1)
     private Long id;
+
     private String email;
     private String address;
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -1,4 +1,5 @@
 package com.VelocityTech.CarssBackend.Model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +24,7 @@ public class TrafficData {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id")
+    @JsonIgnore
     private Device device;
 
     public TrafficData(){}

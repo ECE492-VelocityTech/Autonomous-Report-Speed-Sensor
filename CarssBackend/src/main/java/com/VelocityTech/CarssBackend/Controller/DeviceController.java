@@ -1,7 +1,9 @@
 package com.VelocityTech.CarssBackend.Controller;
 
 import com.VelocityTech.CarssBackend.Model.Device;
+import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
+import com.VelocityTech.CarssBackend.Service.TrafficDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,15 +16,17 @@ import java.util.List;
 public class DeviceController {
 
     private final DeviceService deviceService;
+    private final TrafficDataService trafficDataService;
 
     @Autowired
-    public DeviceController(DeviceService deviceService) {
+    public DeviceController(DeviceService deviceService, TrafficDataService trafficDataService) {
         this.deviceService = deviceService;
+        this.trafficDataService = trafficDataService;
     }
 
-    @PostMapping
-    public ResponseEntity<Device> addDevice(@RequestBody Device device) {
-        Device newDevice = deviceService.addDevice(device);
+    @PostMapping("/owner/{ownerId}")
+    public ResponseEntity<Device> addDeviceToOwner(@PathVariable Long ownerId, @RequestBody Device device) {
+        Device newDevice = deviceService.addDeviceToOwner(ownerId, device);
         return new ResponseEntity<>(newDevice, HttpStatus.CREATED);
     }
 
@@ -37,6 +41,12 @@ public class DeviceController {
         return deviceService.getDeviceById(id)
                 .map(device -> new ResponseEntity<>(device, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/{deviceId}/trafficData")
+    public ResponseEntity<List<TrafficData>> getTrafficDataByDeviceId(@PathVariable Long deviceId) {
+        List<TrafficData> trafficData = trafficDataService.findAllTrafficDataByDeviceId(deviceId);
+        return new ResponseEntity<>(trafficData, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
