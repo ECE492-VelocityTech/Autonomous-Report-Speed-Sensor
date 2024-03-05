@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { Buffer } from 'buffer';
 import {
+  Button,
   FlatList,
   NativeEventEmitter,
   NativeModules, PermissionsAndroid, Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
-  Text, TouchableHighlight,
+  Text, TextInput, TouchableHighlight,
   View
 } from "react-native";
 
@@ -23,6 +25,7 @@ import BleManager, {
   Peripheral,
 } from 'react-native-ble-manager';
 import { Colors } from "react-native/Libraries/NewAppScreen";
+import Constants from "./Constants.js";
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
@@ -39,6 +42,10 @@ const DiscoverDevice = () => {
   const [peripherals, setPeripherals] = useState(
     new Map<Peripheral['id'], Peripheral>(),
   );
+  const [connected, setConnected] = useState(false);
+  const [value, setValue] = useState('');
+  const [error, setError] = useState(null);
+  const [connectedPeripheralId, setConnectedPeripheralId] = useState('-1');
 
   const startScan = () => {
     if (!isScanning) {
@@ -131,18 +138,18 @@ const DiscoverDevice = () => {
         handleDiscoverPeripheral,
       ),
       bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan),
-      // bleManagerEmitter.addListener(
-      //   'BleManagerDisconnectPeripheral',
-      //   handleDisconnectedPeripheral,
-      // ),
+      bleManagerEmitter.addListener(
+        'BleManagerDisconnectPeripheral',
+        handleDisconnectedPeripheral,
+      ),
       // bleManagerEmitter.addListener(
       //   'BleManagerDidUpdateValueForCharacteristic',
       //   handleUpdateValueForCharacteristic,
       // ),
-      // bleManagerEmitter.addListener(
-      //   'BleManagerConnectPeripheral',
-      //   handleConnectPeripheral,
-      // ),
+      bleManagerEmitter.addListener(
+        'BleManagerConnectPeripheral',
+        handleConnectPeripheral,
+      ),
     ];
 
     handleAndroidPermissions();
@@ -155,6 +162,26 @@ const DiscoverDevice = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleDisconnectedPeripheral = (
+    event: BleDisconnectPeripheralEvent,
+  ) => {
+    console.debug(
+      `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`,
+    );
+    setPeripherals(map => {
+      let p = map.get(event.peripheral);
+      if (p) {
+        p.connected = false;
+        return new Map(map.set(event.peripheral, p));
+      }
+      return map;
+    });
+  };
+
+  const handleConnectPeripheral = (event: any) => {
+    console.log(`[handleConnectPeripheral][${event.peripheral}] connected.`);
+  };
 
   const handleAndroidPermissions = () => {
     if (Platform.OS === 'android' && Platform.Version >= 31) {
@@ -199,12 +226,139 @@ const DiscoverDevice = () => {
     }
   };
 
+  const togglePeripheralConnection = async (peripheral: Peripheral) => {
+    if (peripheral && peripheral.connected) {
+      try {
+        await BleManager.disconnect(peripheral.id);
+        setConnectedPeripheralId(-1);
+      } catch (error) {
+        console.error(
+          `[togglePeripheralConnection][${peripheral.id}] error when trying to disconnect device.`,
+          error,
+        );
+      }
+    } else {
+      setConnectedPeripheralId(peripheral.id);
+      await connectPeripheral(peripheral);
+    }
+  };
+
+  function sleep(ms: number) {
+    return new Promise<void>(resolve => setTimeout(resolve, ms));
+  }
+
+  const connectPeripheral = async (peripheral: Peripheral) => {
+    try {
+      if (peripheral) {
+        setPeripherals(map => {
+          let p = map.get(peripheral.id);
+          if (p) {
+            p.connecting = true;
+            return new Map(map.set(p.id, p));
+          }
+          return map;
+        });
+
+        await BleManager.connect(peripheral.id);
+        console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
+
+        setPeripherals(map => {
+          let p = map.get(peripheral.id);
+          if (p) {
+            p.connecting = false;
+            p.connected = true;
+            return new Map(map.set(p.id, p));
+          }
+          return map;
+        });
+
+        // before retrieving services, it is often a good idea to let bonding & connection finish properly
+        await sleep(900);
+
+        /* Test read current RSSI value, retrieve services first */
+        const peripheralData = await BleManager.retrieveServices(peripheral.id);
+        console.debug(
+          `[connectPeripheral][${peripheral.id}] retrieved peripheral services`,
+          peripheralData,
+        );
+
+        const rssi = await BleManager.readRSSI(peripheral.id);
+        console.debug(
+          `[connectPeripheral][${peripheral.id}] retrieved current RSSI value: ${rssi}.`,
+        );
+
+        if (peripheralData.characteristics) {
+          for (let characteristic of peripheralData.characteristics) {
+            if (characteristic.descriptors) {
+              for (let descriptor of characteristic.descriptors) {
+                try {
+                  let data = await BleManager.readDescriptor(
+                    peripheral.id,
+                    characteristic.service,
+                    characteristic.characteristic,
+                    descriptor.uuid,
+                  );
+                  console.debug(
+                    `[connectPeripheral][${peripheral.id}] ${characteristic.service} ${characteristic.characteristic} ${descriptor.uuid} descriptor read as:`,
+                    data,
+                  );
+                } catch (error) {
+                  console.error(
+                    `[connectPeripheral][${peripheral.id}] failed to retrieve descriptor ${descriptor} for characteristic ${characteristic}:`,
+                    error,
+                  );
+                }
+              }
+            }
+          }
+        }
+
+        setPeripherals(map => {
+          let p = map.get(peripheral.id);
+          if (p) {
+            p.rssi = rssi;
+            return new Map(map.set(p.id, p));
+          }
+          return map;
+        });
+      }
+    } catch (error) {
+      console.error(
+        `[connectPeripheral][${peripheral.id}] connectPeripheral error`,
+        error,
+      );
+    }
+  };
+
+  const writeData = async () => {
+    if (connectedPeripheralId == '-1') {
+      return;
+    }
+    try {
+      // Convert value to byte array (assuming ASCII encoding)
+      const bytes = Buffer.from(value, 'ascii');
+      console.log("Sending" + bytes);
+
+      // Write data to characteristic with specified ID and service UUID
+      await BleManager.write(
+        connectedPeripheralId,
+        Constants.BLEServiceUUID,
+        Constants.BLECharUUID,
+        bytes.toJSON().data,
+      );
+
+      console.log("Success sent: " + value);
+    } catch (error) {
+      setError("Error: " + error.message);
+    }
+  };
+
   const renderItem = ({item}: {item: Peripheral}) => {
     const backgroundColor = item.connected ? '#069400' : Colors.white;
     return (
       <TouchableHighlight
         underlayColor="#0082FC"
-        // onPress={() => togglePeripheralConnection(item)}
+        onPress={() => togglePeripheralConnection(item)}
       >
         <View style={[styles.row, {backgroundColor}]}>
           <Text style={styles.peripheralName}>
@@ -220,8 +374,8 @@ const DiscoverDevice = () => {
   };
 
   return <>
-      <SafeAreaView>
-        <Pressable onPress={startScan}>
+      <SafeAreaView style={styles.body}>
+        <Pressable style={styles.scanButton} onPress={startScan}>
           <Text style={styles.scanButtonText}>
             {isScanning ? 'Scanning...' : 'Scan Bluetooth'}
           </Text>
@@ -241,6 +395,19 @@ const DiscoverDevice = () => {
           renderItem={renderItem}
           keyExtractor={item => item.id}
         />
+
+        {connectedPeripheralId != '-1' && (
+          <View>
+            <Text>Connected to device: {connectedPeripheralId}</Text>
+            <TextInput
+              style={{ height: 40, borderColor: 'gray', borderWidth: 1 }}
+              onChangeText={text => setValue(text)}
+              value={value}
+            />
+            <Button title="Write Data" onPress={writeData} />
+          </View>
+        )}
+        {error && <Text>Error: {error}</Text>}
       </SafeAreaView>
     </>
 };
@@ -270,6 +437,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a398a',
     margin: 10,
     borderRadius: 12,
+    marginBottom: 20,
     ...boxShadow,
   },
   scanButtonText: {
