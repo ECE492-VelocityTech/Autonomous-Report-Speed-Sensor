@@ -1,6 +1,8 @@
 package com.VelocityTech.CarssBackend.Model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table
@@ -12,25 +14,27 @@ public class TrafficData {
             sequenceName = "trafficDataSequence",
             allocationSize = 1
     )
-
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
             generator = "trafficDataSequence"
     )
-
-
     private Long id;
     private double speed;
     private LocalDateTime timestamp;
-    private String direction;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "device_id")
+    @JsonIgnore
+    private Device device;
 
     public TrafficData(){}
 
-    public TrafficData(double speed, String direction, LocalDateTime timestamp) {
+    public TrafficData(double speed, LocalDateTime timestamp, Device device) {
         this.speed = speed;
-        this.direction = direction;
         this.timestamp = timestamp;
+        this.device = device;
     }
+
 
     public Long getId() {
         return id;
@@ -56,11 +60,11 @@ public class TrafficData {
         this.timestamp = timestamp;
     }
 
-    public String getDirection() {
-        return direction;
+    public Device getDevice() {
+        return device;
     }
 
-    public void setDirection(String direction) {
-        this.direction = direction;
+    public void setDevice(Device device) {
+        this.device = device;
     }
 }
