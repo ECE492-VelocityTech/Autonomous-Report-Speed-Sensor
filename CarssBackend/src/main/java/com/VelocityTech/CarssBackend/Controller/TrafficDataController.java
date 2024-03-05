@@ -1,3 +1,5 @@
+package com.VelocityTech.CarssBackend.Controller;
+
 import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
 import org.springframework.beans.factory.annotation.Autowired;

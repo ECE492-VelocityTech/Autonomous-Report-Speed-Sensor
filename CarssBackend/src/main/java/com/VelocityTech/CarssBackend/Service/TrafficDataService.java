@@ -11,7 +11,7 @@ import java.util.List;
 @Service
 public class TrafficDataService {
 
-    private final TrafficDataRepository trafficDataRepository;
+    private TrafficDataRepository trafficDataRepository;
 
     @Autowired
     public TrafficDataService(TrafficDataRepository trafficDataRepository){
@@ -19,11 +19,13 @@ public class TrafficDataService {
     }
 
     public List<TrafficData> getTrafficData(){
+
         return trafficDataRepository.findAll();
     }
 
-    public void addNewTrafficData(TrafficData trafficData){
-        trafficDataRepository.save(trafficData);
+    public TrafficData addNewTrafficData(TrafficData trafficData){
+
+        return trafficDataRepository.save(trafficData);
     }
 
     @Transactional(readOnly = true)

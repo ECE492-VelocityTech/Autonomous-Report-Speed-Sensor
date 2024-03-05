@@ -1,3 +1,5 @@
+package com.VelocityTech.CarssBackend.Service;
+
 import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
@@ -10,8 +12,8 @@ import java.util.Optional;
 @Service
 public class DeviceService {
 
-    private final DeviceRepository deviceRepository;
-    private final TrafficDataService trafficDataService;
+    private DeviceRepository deviceRepository;
+    private TrafficDataService trafficDataService;
 
     @Autowired
     public DeviceService(DeviceRepository deviceRepository, TrafficDataService trafficDataService) {

@@ -1,5 +1,8 @@
 package com.VelocityTech.CarssBackend.Model;
 import jakarta.persistence.*;
+import java.util.List;
+import java.util.ArrayList;
+
 
 
 @Entity
@@ -23,8 +26,8 @@ public class Device {
     private String address;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "owner_id")
+    private Owner owner;
 
     @OneToMany(mappedBy = "device", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TrafficData> trafficData = new ArrayList<>();
@@ -59,12 +62,12 @@ public class Device {
         this.address = address;
     }
 
-    public User getUser() {
-        return user;
+    public Owner getOwner() {
+        return owner;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setOwner(Owner owner) {
+        this.owner = owner;
     }
 
     public List<TrafficData> getTrafficData() {

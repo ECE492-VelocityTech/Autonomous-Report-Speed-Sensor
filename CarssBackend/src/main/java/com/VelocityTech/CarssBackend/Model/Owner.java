@@ -1,35 +1,33 @@
 package com.VelocityTech.CarssBackend.Model;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-
-
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table
-public class User {
+public class Owner {
 
     @Id
     @SequenceGenerator(
-            name = "userSequence",
-            sequenceName = "userSequence",
+            name = "OwnerSequence",
+            sequenceName = "OwnerSequence",
             allocationSize = 1
     )
 
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "userSequence"
+            generator = "OwnerSequence"
     )
 
     private Long id;
-    @Email
     private String email;
     private String address;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Device> devices = new ArrayList<>();
 
-    public User(){}
+    public Owner(){}
 
-    public User(String email, String address) {
+    public Owner(String email, String address) {
         this.email = email;
         this.address = address;
     }
@@ -56,12 +54,12 @@ public class User {
 
     public void addDevice(Device device) {
         devices.add(device);
-        device.setUser(this);
+        device.setOwner(this);
     }
 
     public void removeDevice(Device device) {
         devices.remove(device);
-        device.setUser(null);
+        device.setOwner(null);
     }
 
 }

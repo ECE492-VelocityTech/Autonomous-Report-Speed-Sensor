@@ -1,3 +1,5 @@
+package com.VelocityTech.CarssBackend.Controller;
+
 import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
 import org.springframework.beans.factory.annotation.Autowired;

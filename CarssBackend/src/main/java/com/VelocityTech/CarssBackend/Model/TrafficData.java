@@ -1,6 +1,7 @@
 package com.VelocityTech.CarssBackend.Model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table
