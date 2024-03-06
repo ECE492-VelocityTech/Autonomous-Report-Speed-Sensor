@@ -36,17 +36,17 @@ public class DeviceController {
         return new ResponseEntity<>(devices, HttpStatus.OK);
     }
 
+    @PostMapping
+    public ResponseEntity<Device> addNewDevice(@RequestBody Device device) {
+        Device newDevice = deviceService.addDevice(device);
+        return new ResponseEntity<>(newDevice, HttpStatus.CREATED);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Device> getDeviceById(@PathVariable Long id) {
         return deviceService.getDeviceById(id)
                 .map(device -> new ResponseEntity<>(device, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
-    @GetMapping("/{deviceId}/trafficData")
-    public ResponseEntity<List<TrafficData>> getTrafficDataByDeviceId(@PathVariable Long deviceId) {
-        List<TrafficData> trafficData = trafficDataService.findAllTrafficDataByDeviceId(deviceId);
-        return new ResponseEntity<>(trafficData, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
@@ -63,5 +63,11 @@ public class DeviceController {
     public ResponseEntity<Void> deleteDevice(@PathVariable Long id) {
         deviceService.deleteDevice(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/{deviceId}/trafficData")
+    public ResponseEntity<List<TrafficData>> getTrafficDataByDeviceId(@PathVariable Long deviceId) {
+        List<TrafficData> trafficData = trafficDataService.findAllTrafficDataByDeviceId(deviceId);
+        return new ResponseEntity<>(trafficData, HttpStatus.OK);
     }
 }
