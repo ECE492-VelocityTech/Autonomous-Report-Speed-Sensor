@@ -1,9 +1,9 @@
 package com.VelocityTech.CarssBackend.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import java.util.List;
-import java.util.ArrayList;
 
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
@@ -14,9 +14,27 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "deviceSequence")
     @SequenceGenerator(name = "deviceSequence", sequenceName = "deviceSequence", allocationSize = 1)
     private Long id;
-
     private String deviceNo;
     private String address;
+
+    public double getLat() {
+        return lat;
+    }
+
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public double getLng() {
+        return lng;
+    }
+
+    public void setLng(double lng) {
+        this.lng = lng;
+    }
+
+    private double lat;
+    private double lng;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
