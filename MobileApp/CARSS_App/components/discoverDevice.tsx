@@ -48,28 +48,16 @@ const DiscoverDevice = () => {
     const [connectedPeripheralId, setConnectedPeripheralId] = useState("-1");
 
     const startScan = async () => {
-        if (!isScanning) {
-            // reset found peripherals before scan
-            setPeripherals(new Map<Peripheral["id"], Peripheral>());
-            setIsScanning(true);
-            await BluetoothUtil.beginScanForDevices();
-        }
+        await BluetoothUtil.beginScanForDevices(isScanning, setIsScanning, setPeripherals);
+
     };
 
     const handleStopScan = () => {
-        setIsScanning(false);
-        console.debug("[handleStopScan] scan is stopped.");
+        BluetoothUtil.handleStopScan(setIsScanning);
     };
 
     const handleDiscoverPeripheral = (peripheral: Peripheral) => {
-        console.debug("[handleDiscoverPeripheral] new BLE peripheral=", peripheral);
-        if (!peripheral.name) {
-            // peripheral.name = 'NO NAME';
-            return;
-        }
-        setPeripherals(map => {
-            return new Map(map.set(peripheral.id, peripheral));
-        });
+        BluetoothUtil.handleDiscoverPeripheral(peripheral, setPeripherals);
     };
 
     const retrieveConnected = async () => {
@@ -122,10 +110,7 @@ const DiscoverDevice = () => {
                 handleDiscoverPeripheral
             ),
             bleManagerEmitter.addListener("BleManagerStopScan", handleStopScan),
-            bleManagerEmitter.addListener(
-                "BleManagerDisconnectPeripheral",
-                handleDisconnectedPeripheral
-            ),
+            bleManagerEmitter.addListener("BleManagerDisconnectPeripheral",  handleDisconnectedPeripheral),
             // bleManagerEmitter.addListener(
             //   'BleManagerDidUpdateValueForCharacteristic',
             //   handleUpdateValueForCharacteristic,
@@ -136,7 +121,7 @@ const DiscoverDevice = () => {
             )
         ];
 
-        handleAndroidPermissions();
+        BluetoothUtil.handleAndroidPermissions();
 
         return () => {
             console.debug("[app] main component unmounting. Removing listeners...");
@@ -147,67 +132,12 @@ const DiscoverDevice = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleDisconnectedPeripheral = (
-        event: BleDisconnectPeripheralEvent
-    ) => {
-        console.debug(
-            `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`
-        );
-        setPeripherals(map => {
-            let p = map.get(event.peripheral);
-            if (p) {
-                p.connected = false;
-                return new Map(map.set(event.peripheral, p));
-            }
-            return map;
-        });
+    const handleDisconnectedPeripheral = (event: BleDisconnectPeripheralEvent) => {
+        BluetoothUtil.handleDisconnectedPeripheral(setPeripherals, event);
     };
 
     const handleConnectPeripheral = (event: any) => {
         console.log(`[handleConnectPeripheral][${event.peripheral}] connected.`);
-    };
-
-    const handleAndroidPermissions = () => {
-        if (Platform.OS === "android" && Platform.Version >= 31) {
-            PermissionsAndroid.requestMultiple([
-                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-                PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT
-            ]).then(result => {
-                if (result) {
-                    console.debug(
-                        "[handleAndroidPermissions] User accepts runtime permissions android 12+"
-                    );
-                } else {
-                    console.error(
-                        "[handleAndroidPermissions] User refuses runtime permissions android 12+"
-                    );
-                }
-            });
-        } else if (Platform.OS === "android" && Platform.Version >= 23) {
-            PermissionsAndroid.check(
-                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-            ).then(checkResult => {
-                if (checkResult) {
-                    console.debug(
-                        "[handleAndroidPermissions] runtime permission Android <12 already OK"
-                    );
-                } else {
-                    PermissionsAndroid.request(
-                        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-                    ).then(requestResult => {
-                        if (requestResult) {
-                            console.debug(
-                                "[handleAndroidPermissions] User accepts runtime permission android <12"
-                            );
-                        } else {
-                            console.error(
-                                "[handleAndroidPermissions] User refuses runtime permission android <12"
-                            );
-                        }
-                    });
-                }
-            });
-        }
     };
 
     const togglePeripheralConnection = async (peripheral: Peripheral) => {
@@ -223,118 +153,12 @@ const DiscoverDevice = () => {
             }
         } else {
             setConnectedPeripheralId(peripheral.id);
-            await connectPeripheral(peripheral);
-        }
-    };
-
-    function sleep(ms: number) {
-        return new Promise<void>(resolve => setTimeout(resolve, ms));
-    }
-
-    const connectPeripheral = async (peripheral: Peripheral) => {
-        try {
-            if (peripheral) {
-                setPeripherals(map => {
-                    let p = map.get(peripheral.id);
-                    if (p) {
-                        p.connecting = true;
-                        return new Map(map.set(p.id, p));
-                    }
-                    return map;
-                });
-
-                await BleManager.connect(peripheral.id);
-                console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
-
-                setPeripherals(map => {
-                    let p = map.get(peripheral.id);
-                    if (p) {
-                        p.connecting = false;
-                        p.connected = true;
-                        return new Map(map.set(p.id, p));
-                    }
-                    return map;
-                });
-
-                // before retrieving services, it is often a good idea to let bonding & connection finish properly
-                await sleep(900);
-
-                /* Test read current RSSI value, retrieve services first */
-                const peripheralData = await BleManager.retrieveServices(peripheral.id);
-                console.debug(
-                    `[connectPeripheral][${peripheral.id}] retrieved peripheral services`,
-                    peripheralData
-                );
-
-                const rssi = await BleManager.readRSSI(peripheral.id);
-                console.debug(
-                    `[connectPeripheral][${peripheral.id}] retrieved current RSSI value: ${rssi}.`
-                );
-
-                if (peripheralData.characteristics) {
-                    for (let characteristic of peripheralData.characteristics) {
-                        if (characteristic.descriptors) {
-                            for (let descriptor of characteristic.descriptors) {
-                                try {
-                                    let data = await BleManager.readDescriptor(
-                                        peripheral.id,
-                                        characteristic.service,
-                                        characteristic.characteristic,
-                                        descriptor.uuid
-                                    );
-                                    console.debug(
-                                        `[connectPeripheral][${peripheral.id}] ${characteristic.service} ${characteristic.characteristic} ${descriptor.uuid} descriptor read as:`,
-                                        data
-                                    );
-                                } catch (error) {
-                                    console.error(
-                                        `[connectPeripheral][${peripheral.id}] failed to retrieve descriptor ${descriptor} for characteristic ${characteristic}:`,
-                                        error
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-
-                setPeripherals(map => {
-                    let p = map.get(peripheral.id);
-                    if (p) {
-                        p.rssi = rssi;
-                        return new Map(map.set(p.id, p));
-                    }
-                    return map;
-                });
-            }
-        } catch (error) {
-            console.error(
-                `[connectPeripheral][${peripheral.id}] connectPeripheral error`,
-                error
-            );
+            await BluetoothUtil.connectPeripheral(peripheral, setPeripherals);
         }
     };
 
     const writeData = async () => {
-        if (connectedPeripheralId == "-1") {
-            return;
-        }
-        try {
-            // Convert value to byte array (assuming ASCII encoding)
-            const bytes = Buffer.from(value, "ascii");
-            console.log("Sending" + bytes);
-
-            // Write data to characteristic with specified ID and service UUID
-            await BleManager.write(
-                connectedPeripheralId,
-                Constants.BLEServiceUUID,
-                Constants.BLECharUUID,
-                bytes.toJSON().data
-            );
-
-            console.log("Success sent: " + value);
-        } catch (error) {
-            setError("Error: " + error.message);
-        }
+        await BluetoothUtil.writeDataToPeripheral(connectedPeripheralId, value, setError);
     };
 
     const renderItem = ({ item }: { item: Peripheral }) => {
