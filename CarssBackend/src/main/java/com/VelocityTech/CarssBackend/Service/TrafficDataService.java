@@ -7,6 +7,9 @@ import com.VelocityTech.CarssBackend.Repository.TrafficDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,6 +49,29 @@ public class TrafficDataService {
         return trafficDataRepository.findByDeviceId(deviceId);
     }
 
+    @Transactional(readOnly = true)
+    public List<TrafficData> filterTrafficDataByDate(LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay(); // Start of the day
+        LocalDateTime endOfDay = date.plusDays(1).atStartOfDay().minusSeconds(1);
+
+        return trafficDataRepository.findByTimestampBetween(startOfDay, endOfDay);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TrafficData> findTrafficDataBetweenDates(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay().minusNanos(1);
+
+        return trafficDataRepository.findByTimestampBetween(startDateTime, endDateTime);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TrafficData> findTrafficDataByYear(Integer year) {
+        LocalDateTime startOfYear = LocalDate.of(year, 1, 1).atStartOfDay();
+        LocalDateTime endOfYear = LocalDate.of(year, 1, 1).plusYears(1).atStartOfDay().minusNanos(1);
+
+        return trafficDataRepository.findByTimestampBetween(startOfYear, endOfYear);
+    }
 
     @Transactional
     public TrafficData updateTrafficData(Long id, TrafficData updatedTrafficData) {
