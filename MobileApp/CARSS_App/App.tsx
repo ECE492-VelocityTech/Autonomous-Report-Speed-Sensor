@@ -25,6 +25,7 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 import DiscoverDevice from "./components/discoverDevice.tsx";
+import SignIn from "./components/SignIn.tsx";
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -76,7 +77,8 @@ function App(): React.JSX.Element {
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
-          <DiscoverDevice />
+          {/*<DiscoverDevice />*/}
+            <SignIn />
         </View>
       </ScrollView>
     </SafeAreaView>
