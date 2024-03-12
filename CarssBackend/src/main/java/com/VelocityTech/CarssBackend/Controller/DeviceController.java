@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/devices")
+@CrossOrigin(origins = "http://localhost:5173")
 public class DeviceController {
 
     private final DeviceService deviceService;
@@ -34,12 +35,6 @@ public class DeviceController {
     public ResponseEntity<List<Device>> getAllDevices() {
         List<Device> devices = deviceService.getAllDevices();
         return new ResponseEntity<>(devices, HttpStatus.OK);
-    }
-
-    @PostMapping
-    public ResponseEntity<Device> addNewDevice(@RequestBody Device device) {
-        Device newDevice = deviceService.addDevice(device);
-        return new ResponseEntity<>(newDevice, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")

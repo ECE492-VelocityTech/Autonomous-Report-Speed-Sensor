@@ -77,8 +77,10 @@ public class TrafficDataService {
     public TrafficData updateTrafficData(Long id, TrafficData updatedTrafficData) {
         return trafficDataRepository.findById(id)
                 .map(trafficData -> {
-                    trafficData.setSpeed(updatedTrafficData.getSpeed());
-                    trafficData.setTimestamp(updatedTrafficData.getTimestamp());
+                    if (updatedTrafficData.getSpeed() != 0.0)
+                        trafficData.setSpeed(updatedTrafficData.getSpeed());
+                    if (updatedTrafficData.getTimestamp() != null)
+                        trafficData.setTimestamp(updatedTrafficData.getTimestamp());
                     // Optionally update device association here if required
                     return trafficDataRepository.save(trafficData);
                 }).orElseThrow(() -> new RuntimeException("Traffic Data not found with id: " + id));
