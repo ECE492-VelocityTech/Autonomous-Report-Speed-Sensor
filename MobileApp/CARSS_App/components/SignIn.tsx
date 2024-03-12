@@ -18,7 +18,7 @@ GoogleSignin.configure({
     // profileImageSize: 120, // [iOS] The desired height (and width) of the profile image. Defaults to 120px
 });
 
-const SignIn = () => {
+const SignIn = ({navigation}: any) => {
     const [temp, setTemp] = useState("");
     // Somewhere in your code
     const googleSignIn = async () => {
@@ -27,6 +27,7 @@ const SignIn = () => {
             const userInfo = await GoogleSignin.signIn();
             console.log(JSON.stringify(userInfo));
             setTemp(JSON.stringify(userInfo));
+            navigation.navigate('Home')
         } catch (error: any) {
             console.log(JSON.stringify(error))
             setTemp(JSON.stringify(error));
