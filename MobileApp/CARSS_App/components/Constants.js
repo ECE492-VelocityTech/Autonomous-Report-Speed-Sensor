@@ -3,7 +3,14 @@ const Constants = {
   BLECharUUID: '221a1cf8-875c-4654-b7db-bfad7b5b7cf4',
   SECONDS_TO_SCAN_FOR: 3,
   SERVICE_UUIDS: [],
-  ALLOW_DUPLICATES: true
+  ALLOW_DUPLICATES: true,
+
+  ThemeColor: {
+    DarkBackground: "#2b2b2b",
+    DarkForeground: "#FFFFFF",
+    LightBackground: "#EAEAEA",
+    LightForeground: "#FFFFFF",
+  }
 };
 
 export default Constants;
