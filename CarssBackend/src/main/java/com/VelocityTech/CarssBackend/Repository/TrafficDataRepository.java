@@ -12,4 +12,6 @@ import java.util.List;
 public interface TrafficDataRepository extends JpaRepository<TrafficData,Long> {
     List<TrafficData> findByDeviceId(Long deviceId);
     List<TrafficData> findByTimestampBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<TrafficData> findByDeviceIdAndTimestampBetween(Long deviceId, LocalDateTime startDate, LocalDateTime endDate);
 }
