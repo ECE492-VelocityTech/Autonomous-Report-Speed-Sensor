@@ -90,4 +90,13 @@ public class TrafficDataService {
     public void deleteTrafficData(Long id) {
         trafficDataRepository.deleteById(id);
     }
+
+    @Transactional
+    public List<TrafficData> findTrafficDataByDeviceIdAndDateRange(Long deviceId, LocalDate startDate, LocalDate endDate) {
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay().minusNanos(1);
+
+        return trafficDataRepository.findByDeviceIdAndTimestampBetween(deviceId, startDateTime, endDateTime);
+    }
 }
