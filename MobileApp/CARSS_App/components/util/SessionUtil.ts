@@ -13,7 +13,11 @@ const SessionUtil = {
         } catch (_) {
             return false;
         }
-    }
+    },
+
+    getCurrentUser: async () => {
+        return await GoogleSignin.getCurrentUser();
+    },
 };
 
 export default SessionUtil;

@@ -9,14 +9,25 @@ const StyleUtil = {
     },
 
     getBackgroundColor: function() {
-        return this.darkMode ? constants.ThemeColor.DarkBackground : constants.ThemeColor.LightBackground;
+        return {
+            backgroundColor: this.darkMode ?
+                constants.ThemeColor.DarkBackground : constants.ThemeColor.LightBackground
+        }
     },
 
     getForegroundColor: function() {
-        return this.darkMode ? constants.ThemeColor.DarkForeground : constants.ThemeColor.LightForeground;
+        return {
+            color: this.darkMode ?
+                constants.ThemeColor.DarkForeground : constants.ThemeColor.LightForeground
+        }
     },
 
-
+    getButtonBackgroundColor: function() {
+        return {
+            backgroundColor: this.darkMode ?
+                constants.ThemeColor.DarkButtonBackground : constants.ThemeColor.LightButtonBackground
+        };
+    }
 };
 
 export default StyleUtil;

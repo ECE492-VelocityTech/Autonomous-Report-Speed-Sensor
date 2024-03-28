@@ -1,19 +1,24 @@
 import styles from "./styles.ts";
 import React, { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 import SessionUtil from "../components/util/SessionUtil.ts";
 import sessionUtil from "../components/util/SessionUtil.ts";
 import { useFocusEffect } from "@react-navigation/native";
 import StyleUtil from "../components/util/StyleUtil.ts";
+import { User } from "@react-native-google-signin/google-signin";
+import AddDeviceButton from "../components/AddDeviceButton.tsx";
 
 const HomeScreen = ({navigation}: any) => {
-    const [temp, setTemp] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User>();
+
     const determineIfSignedIn = async () => {
         let signedIn = await SessionUtil.isSignedIn();
-        setTemp(signedIn)
         if (!signedIn) {
             navigation.navigate('SignIn');
         }
+        let signedInUser = await sessionUtil.getCurrentUser();
+        if (signedInUser) { setCurrentUser(signedInUser); }
+        else { navigation.navigate('SignIn'); }
     }
 
     const signOut = async () => {
@@ -25,11 +30,18 @@ const HomeScreen = ({navigation}: any) => {
         determineIfSignedIn();
     });
 
+    const getCurrentUserName = function() {
+        if (currentUser) { return currentUser.user.givenName }
+        return "___";
+    }
+
     return (
         <>
-            <View style={[styles.container, { backgroundColor: StyleUtil.getBackgroundColor(), color: StyleUtil.getForegroundColor() }]}>
-                <Text style={styles.text}>Signed In: {temp ? "true" : "false"}</Text>
-                <Pressable onPress={signOut}><Text style={{color: StyleUtil.getForegroundColor()}}>SignOut</Text></Pressable>
+            <View style={[styles.container, StyleUtil.getBackgroundColor()]}>
+                <Text style={styles.text}>Signed In: {getCurrentUserName()}</Text>
+                <Pressable onPress={signOut}><Text style={StyleUtil.getForegroundColor()}>SignOut</Text></Pressable>
+
+                <AddDeviceButton navigation={navigation}/>
             </View>
         </>
     )

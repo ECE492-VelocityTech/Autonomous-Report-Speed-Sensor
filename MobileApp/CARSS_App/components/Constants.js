@@ -8,8 +8,10 @@ const Constants = {
   ThemeColor: {
     DarkBackground: "#2b2b2b",
     DarkForeground: "#FFFFFF",
+    DarkButtonBackground: "#122e65",
     LightBackground: "#EAEAEA",
     LightForeground: "#FFFFFF",
+    LightButtonBackground: "#122e65",
   }
 };
 
