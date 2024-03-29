@@ -22,6 +22,15 @@ const StyleUtil = {
         }
     },
 
+    getBackgroundAndForegroundColor: function() {
+        return {
+            backgroundColor: this.darkMode ?
+                constants.ThemeColor.DarkBackground : constants.ThemeColor.LightBackground,
+            color: this.darkMode ?
+                constants.ThemeColor.DarkForeground : constants.ThemeColor.LightForeground
+        }
+    },
+
     getButtonBackgroundColor: function() {
         return {
             backgroundColor: this.darkMode ?

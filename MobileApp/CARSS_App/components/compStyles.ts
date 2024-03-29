@@ -1,6 +1,19 @@
 import { StyleSheet } from "react-native";
 
 const compStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingVertical: 20,
+        padding: 20
+    },
+
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
+
     text: {
         fontSize: 24,
         fontWeight: 'bold',
@@ -19,6 +32,31 @@ const compStyles = StyleSheet.create({
         alignItems: 'center',
     },
 
+    normalButton: {
+        height: 50,
+        // width: 150,
+        paddingHorizontal: 30,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    wholeWidthContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: "100%",
+    },
+
+    buttonContainer: {
+        display: 'flex',
+        flexDirection: 'row'
+    },
+
+    normalButtonText: {
+        fontSize: 22,
+        fontWeight: 'bold',
+    },
+
     addButtonSymbol: {
         fontSize: 24,
         fontWeight: 'bold',
@@ -29,6 +67,25 @@ const compStyles = StyleSheet.create({
         fontWeight: 'bold',
         paddingLeft: 7
     },
+
+    instructionContainer: {
+        marginBottom: 20,
+    },
+
+    step: {
+        fontSize: 16,
+        marginBottom: 10,
+    },
+
+    subStep: {
+        fontSize: 16,
+        marginLeft: 20,
+        marginBottom: 5,
+    },
+
+    sectionContainer: {
+        marginTop: 20,
+    }
 });
 
 export default compStyles;
