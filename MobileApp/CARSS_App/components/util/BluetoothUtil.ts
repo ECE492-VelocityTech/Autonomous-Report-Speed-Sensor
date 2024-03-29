@@ -52,6 +52,7 @@ const BluetoothUtil = {
         console.debug(
             `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`
         );
+        if (!setPeripherals) { return; }
         setPeripherals((map: Map<string, Peripheral>) => {
             let p = map.get(event.peripheral);
             if (p) {
@@ -105,7 +106,7 @@ const BluetoothUtil = {
         }
     },
 
-    connectPeripheral: async function(peripheral: Peripheral, setPeripherals, ) {
+    connectPeripheral: async function(peripheral: Peripheral, setPeripherals: any, ) {
         if (peripheral) {
             setPeripherals((map: Map<string, Peripheral>) => {
                 let p = map.get(peripheral.id);

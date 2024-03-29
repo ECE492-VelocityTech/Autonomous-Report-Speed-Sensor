@@ -85,7 +85,19 @@ const compStyles = StyleSheet.create({
 
     sectionContainer: {
         marginTop: 20,
-    }
+    },
+
+    inputHeading: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    inputField: {
+        height: 40,
+        marginBottom: 20,
+        borderBottomWidth: 1,
+        // borderBottomColor: '#ccc',
+    },
 });
 
 export default compStyles;
