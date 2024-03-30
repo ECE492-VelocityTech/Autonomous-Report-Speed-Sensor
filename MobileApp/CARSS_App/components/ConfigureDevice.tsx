@@ -27,17 +27,17 @@ const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, Bl
 
     return <>
         <View style={[compStyles.container, styleUtil.getBackgroundColor()]}>
-            {connectedDeviceBleId != "-1" && (
-                <View>
-                    <Text>Connected to device1: {connectedDeviceBleId}</Text>
-                    <TextInput
-                        style={{ height: 40, borderColor: "gray", borderWidth: 1 }}
-                        onChangeText={text => setValue(text)}
-                        value={value}
-                    />
-                    <Button title="Write Data" onPress={writeData} />
-                </View>
-            )}
+            {/*{connectedDeviceBleId != "-1" && (*/}
+            {/*    <View>*/}
+            {/*        <Text>Connected to device1: {connectedDeviceBleId}</Text>*/}
+            {/*        <TextInput*/}
+            {/*            style={{ height: 40, borderColor: "gray", borderWidth: 1 }}*/}
+            {/*            onChangeText={text => setValue(text)}*/}
+            {/*            value={value}*/}
+            {/*        />*/}
+            {/*        <Button title="Write Data" onPress={writeData} />*/}
+            {/*    </View>*/}
+            {/*)}*/}
             <Text style={[compStyles.title, styleUtil.getForegroundColor()]}>Configure CARSS 1 Device</Text>
             <View style={compStyles.sectionContainer}>
                 <Text style={compStyles.inputHeading}>Device Name*</Text>
