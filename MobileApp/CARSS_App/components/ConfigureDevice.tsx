@@ -1,9 +1,11 @@
-import { Button, Pressable, Text, TextInput, View } from "react-native";
+import { Animated, Button, Pressable, Text, TextInput, View } from "react-native";
 import compStyles from "./compStyles.ts";
 import styleUtil from "./util/StyleUtil.ts";
 import React, { useState } from "react";
+import RestApi from "./util/RestApi.ts";
+import SessionUtil from "./util/SessionUtil.ts";
 
-const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, BleManager}: any) => {
+const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, BleManager, navigation}: any) => {
     const [value, setValue] = useState("");
     const [error, setError] = useState(null);
     const [deviceName, setDeviceName] = useState('');
@@ -18,7 +20,13 @@ const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, Bl
             wifiPassword,
             address,
         }
-        await BluetoothUtil.writeDataToPeripheral(connectedDeviceBleId, JSON.stringify(body), setError);
+        const configSuccess = await BluetoothUtil.writeDataToPeripheral(connectedDeviceBleId, JSON.stringify(body), setError);
+        if (!configSuccess) {
+            // TODO: Handle failure
+            return;
+        }
+        await RestApi.addDevice(SessionUtil.getCacheCurrentUserId(), toDevice(deviceName, address, 0, 0))
+        navigation.navigate('Home')
     };
 
     const writeData = async () => {
@@ -27,17 +35,6 @@ const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, Bl
 
     return <>
         <View style={[compStyles.container, styleUtil.getBackgroundColor()]}>
-            {/*{connectedDeviceBleId != "-1" && (*/}
-            {/*    <View>*/}
-            {/*        <Text>Connected to device1: {connectedDeviceBleId}</Text>*/}
-            {/*        <TextInput*/}
-            {/*            style={{ height: 40, borderColor: "gray", borderWidth: 1 }}*/}
-            {/*            onChangeText={text => setValue(text)}*/}
-            {/*            value={value}*/}
-            {/*        />*/}
-            {/*        <Button title="Write Data" onPress={writeData} />*/}
-            {/*    </View>*/}
-            {/*)}*/}
             <Text style={[compStyles.title, styleUtil.getForegroundColor()]}>Configure CARSS 1 Device</Text>
             <View style={compStyles.sectionContainer}>
                 <Text style={compStyles.inputHeading}>Device Name*</Text>

@@ -27,8 +27,7 @@ const SignIn = ({navigation}: any) => {
             await GoogleSignin.hasPlayServices();
             const userInfo = await GoogleSignin.signIn();
             console.log(JSON.stringify(userInfo));
-            await RestApi.ownerSignIn(userInfo.user.email, "");
-            SessionUtil.setCacheCurrentUser(userInfo);
+            await SessionUtil.setUserSignedIn(userInfo);
             navigation.navigate('Home')
         } catch (error: any) {
             console.log(JSON.stringify(error))

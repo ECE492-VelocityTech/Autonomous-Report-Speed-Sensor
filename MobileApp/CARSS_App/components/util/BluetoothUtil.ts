@@ -203,11 +203,11 @@ const BluetoothUtil = {
                 bytes.toJSON().data,
                 Constants.BLEMaxBytes,
             );
-
             console.log("Success sent: " + message);
+            return true;
         } catch (error: any) {
             if (setError) { setError("Error: " + error.message); }
-
+            return false;
         }
     },
 

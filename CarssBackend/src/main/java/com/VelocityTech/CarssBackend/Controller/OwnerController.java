@@ -2,6 +2,7 @@ package com.VelocityTech.CarssBackend.Controller;
 
 import com.VelocityTech.CarssBackend.Model.Owner;
 import com.VelocityTech.CarssBackend.Service.OwnerService;
+import com.VelocityTech.CarssBackend.ViewModel.OwnerSignInVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,12 @@ public class OwnerController {
     public ResponseEntity<Owner> addOwner(@RequestBody Owner owner) {
         Owner newOwner = ownerService.addNewOwner(owner);
         return new ResponseEntity<>(newOwner, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/signIn")
+    public ResponseEntity<Owner> signIn(@RequestBody OwnerSignInVM ownerSignInVM) {
+        Owner newOwner = ownerService.ownerSignIn(ownerSignInVM);
+        return new ResponseEntity<>(newOwner, HttpStatus.OK);
     }
 
     @GetMapping

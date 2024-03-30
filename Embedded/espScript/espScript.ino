@@ -4,7 +4,6 @@
 #include <ArduinoJson.h>
 
 #include "config.h"
-#include "wifiUtil.h"
 #include <EEPROM.h>
 
 using namespace std;

@@ -2,6 +2,7 @@ package com.VelocityTech.CarssBackend.Service;
 
 import com.VelocityTech.CarssBackend.Model.Owner;
 import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
+import com.VelocityTech.CarssBackend.ViewModel.OwnerSignInVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
@@ -30,6 +31,10 @@ public class OwnerService {
         return ownerRepository.findById(id);
     }
 
+    public Optional<Owner> getOwnerByEmail(String email) {
+        return ownerRepository.findByEmail(email);
+    }
+
     public Owner updateOwner(Long id, Owner ownerDetails) {
         return ownerRepository.findById(id)
                 .map(owner -> {
@@ -41,5 +46,14 @@ public class OwnerService {
 
     public void deleteOwner(Long id) {
         ownerRepository.deleteById(id);
+    }
+
+    public Owner ownerSignIn(OwnerSignInVM ownerSignInVM) {
+        Optional<Owner> optionalOwner = ownerRepository.findByEmail(ownerSignInVM.getEmail());
+        if (optionalOwner.isPresent()) {
+            return optionalOwner.get();
+        }
+
+        return addNewOwner(ownerSignInVM.toOwner());
     }
 }

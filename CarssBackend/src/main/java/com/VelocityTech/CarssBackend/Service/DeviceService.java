@@ -58,6 +58,10 @@ public class DeviceService {
         return deviceRepository.findAll();
     }
 
+    public List<Device> getAllDevicesForOwner(long ownerId) {
+        return deviceRepository.findByOwnerId(ownerId);
+    }
+
     @Transactional(readOnly = true)
     public Optional<Device> getDeviceById(Long id) {
         return deviceRepository.findById(id);
