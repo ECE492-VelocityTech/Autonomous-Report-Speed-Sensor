@@ -6,6 +6,8 @@ import {
 import { Text, View } from "react-native";
 import React, { useState } from "react";
 import { GOOGLE_ANDROID_CLIENT } from "@env"
+import RestApi from "./util/RestApi.ts";
+import SessionUtil from "./util/SessionUtil.ts";
 
 GoogleSignin.configure({
     scopes: ['profile', 'email'],
@@ -19,18 +21,17 @@ GoogleSignin.configure({
 });
 
 const SignIn = ({navigation}: any) => {
-    const [temp, setTemp] = useState("");
     // Somewhere in your code
     const googleSignIn = async () => {
         try {
             await GoogleSignin.hasPlayServices();
             const userInfo = await GoogleSignin.signIn();
             console.log(JSON.stringify(userInfo));
-            setTemp(JSON.stringify(userInfo));
+            await RestApi.ownerSignIn(userInfo.user.email, "");
+            SessionUtil.setCacheCurrentUser(userInfo);
             navigation.navigate('Home')
         } catch (error: any) {
             console.log(JSON.stringify(error))
-            setTemp(JSON.stringify(error));
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
                 // user cancelled the login flow
             } else if (error.code === statusCodes.IN_PROGRESS) {
