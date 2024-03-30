@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -63,6 +65,20 @@ public class DeviceController {
     @GetMapping("/{deviceId}/trafficData")
     public ResponseEntity<List<TrafficData>> getTrafficDataByDeviceId(@PathVariable Long deviceId) {
         List<TrafficData> trafficData = trafficDataService.findAllTrafficDataByDeviceId(deviceId);
+        return new ResponseEntity<>(trafficData, HttpStatus.OK);
+    }
+
+    @GetMapping("/{deviceId}/trafficData/dateRange")
+    public ResponseEntity<List<TrafficData>> getTrafficDataByDeviceIdAndDateRange(
+            @PathVariable Long deviceId,
+            @RequestParam(value = "startDate", required = true) String startDateString,
+            @RequestParam(value = "endDate", required = true) String endDateString) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate startDate = LocalDate.parse(startDateString, formatter);
+        LocalDate endDate = LocalDate.parse(endDateString, formatter);
+
+        List<TrafficData> trafficData = trafficDataService.findTrafficDataByDeviceIdAndDateRange(deviceId, startDate, endDate);
         return new ResponseEntity<>(trafficData, HttpStatus.OK);
     }
 }
