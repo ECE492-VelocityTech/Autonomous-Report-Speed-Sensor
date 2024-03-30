@@ -83,7 +83,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
       Serial.print("Address: ");
       Serial.println(address);
       config.deviceName = String(deviceName);
-      config.wifiName = tring(wifiName);
+      config.wifiName = String(wifiName);
       saveConfiguration(config);
     }
 };
