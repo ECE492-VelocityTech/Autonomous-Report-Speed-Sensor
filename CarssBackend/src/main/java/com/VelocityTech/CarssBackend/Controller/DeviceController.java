@@ -81,4 +81,10 @@ public class DeviceController {
         List<TrafficData> trafficData = trafficDataService.findTrafficDataByDeviceIdAndDateRange(deviceId, startDate, endDate);
         return new ResponseEntity<>(trafficData, HttpStatus.OK);
     }
+
+    @GetMapping("/owner/{ownerId}")
+    public ResponseEntity<List<Device>> getAllDevicesForOwner(@PathVariable long ownerId) {
+        List<Device> devices = deviceService.getAllDevicesForOwner(ownerId);
+        return new ResponseEntity<>(devices, HttpStatus.OK);
+    }
 }

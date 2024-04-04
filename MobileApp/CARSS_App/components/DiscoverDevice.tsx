@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Buffer } from "buffer";
 import {
     Button,
     FlatList,
@@ -13,21 +12,15 @@ import {
 } from "react-native";
 
 
-
-import BleManager, {
-    BleDisconnectPeripheralEvent,
-    BleManagerDidUpdateValueForCharacteristicEvent,
-    BleScanCallbackType,
-    BleScanMatchMode,
-    BleScanMode,
-    Peripheral
-} from "react-native-ble-manager";
+import BleManager, { BleDisconnectPeripheralEvent, Peripheral } from "react-native-ble-manager";
 import { Colors } from "react-native/Libraries/NewAppScreen";
-import Constants from "./Constants.js";
+import compStyles from "./compStyles.ts";
+import styleUtil from "./util/StyleUtil.ts";
+import ConfigureDevice from "./ConfigureDevice.tsx";
 import BluetoothUtil from "./util/BluetoothUtil.ts";
 
-const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+// const BleManagerModule = NativeModules.BleManager;
+// const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 declare module "react-native-ble-manager" {
     // enrich local contract with custom state properties needed by App.tsx
@@ -37,19 +30,18 @@ declare module "react-native-ble-manager" {
     }
 }
 
-const DiscoverDevice = () => {
+const DiscoverDevice = ({completeDeviceConnection, BluetoothUtil, BleManager, bleManagerEmitter, showConfiguration}: any) => {
     const [isScanning, setIsScanning] = useState(false);
     const [peripherals, setPeripherals] = useState(
         new Map<Peripheral["id"], Peripheral>()
     );
     const [connected, setConnected] = useState(false);
-    const [value, setValue] = useState("");
+
     const [error, setError] = useState(null);
-    const [connectedPeripheralId, setConnectedPeripheralId] = useState("-1");
+    const [connectedDeviceBleId, setConnectedDeviceBleId] = useState("-1")
 
     const startScan = async () => {
         await BluetoothUtil.beginScanForDevices(isScanning, setIsScanning, setPeripherals);
-
     };
 
     const handleStopScan = () => {
@@ -59,6 +51,7 @@ const DiscoverDevice = () => {
     const handleDiscoverPeripheral = (peripheral: Peripheral) => {
         BluetoothUtil.handleDiscoverPeripheral(peripheral, setPeripherals);
     };
+
 
     const retrieveConnected = async () => {
         try {
@@ -141,25 +134,26 @@ const DiscoverDevice = () => {
     };
 
     const togglePeripheralConnection = async (peripheral: Peripheral) => {
-        if (peripheral && peripheral.connected) {
-            try {
-                await BleManager.disconnect(peripheral.id);
-                setConnectedPeripheralId(-1);
-            } catch (error) {
-                console.error(
-                    `[togglePeripheralConnection][${peripheral.id}] error when trying to disconnect device.`,
-                    error
-                );
-            }
-        } else {
-            setConnectedPeripheralId(peripheral.id);
+        if (peripheral && !peripheral.connected) {
+            setConnectedDeviceBleId(peripheral.id);
             await BluetoothUtil.connectPeripheral(peripheral, setPeripherals);
+            completeDeviceConnection(peripheral.id)
         }
+        // if (peripheral && peripheral.connected) {
+        //     console.log("Disconnecting")
+        //     try {
+        //         await BleManager.disconnect(peripheral.id);
+        //         setConnectedDeviceBleId("-1");
+        //     } catch (error) {
+        //         console.error(
+        //             `[togglePeripheralConnection][${peripheral.id}] error when trying to disconnect device.`,
+        //             error
+        //         );
+        //     }
+        // }
     };
 
-    const writeData = async () => {
-        await BluetoothUtil.writeDataToPeripheral(connectedPeripheralId, value, setError);
-    };
+
 
     const renderItem = ({ item }: { item: Peripheral }) => {
         const backgroundColor = item.connected ? "#069400" : Colors.white;
@@ -181,42 +175,44 @@ const DiscoverDevice = () => {
         );
     };
 
+
+
     return <>
-        <SafeAreaView style={styles.body}>
-            <Pressable style={styles.scanButton} onPress={startScan}>
-                <Text style={styles.scanButtonText}>
-                    {isScanning ? "Scanning..." : "Scan Bluetooth"}
-                </Text>
-            </Pressable>
 
-            {Array.from(peripherals.values()).length === 0 && (
-                <View style={styles.row}>
-                    <Text style={styles.noPeripherals}>
-                        No Peripherals, press "Scan Bluetooth" above.
+        {!showConfiguration() ?
+            <SafeAreaView style={[compStyles.container, styleUtil.getBackgroundColor()]}>
+                {/*Search for devices*/}
+                <Pressable style={[compStyles.normalButton, styleUtil.getButtonBackgroundColor()]} onPress={startScan}>
+                    <Text style={styles.scanButtonText}>
+                        {isScanning ? "Scanning..." : "Scan Bluetooth"}
                     </Text>
-                </View>
-            )}
+                </Pressable>
 
-            <FlatList
-                data={Array.from(peripherals.values())}
-                contentContainerStyle={{ rowGap: 12 }}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-            />
+                {/*Show available devices*/}
+                <View style={compStyles.sectionContainer}>
+                    {Array.from(peripherals.values()).length === 0 && (
+                        <View style={styles.row}>
+                            <Text style={styles.noPeripherals}>
+                                No Peripherals, press "Scan Bluetooth" above.
+                            </Text>
+                        </View>
+                    )}
 
-            {connectedPeripheralId != "-1" && (
-                <View>
-                    <Text>Connected to device: {connectedPeripheralId}</Text>
-                    <TextInput
-                        style={{ height: 40, borderColor: "gray", borderWidth: 1 }}
-                        onChangeText={text => setValue(text)}
-                        value={value}
+                    <FlatList
+                        data={Array.from(peripherals.values())}
+                        contentContainerStyle={{ rowGap: 12 }}
+                        renderItem={renderItem}
+                        keyExtractor={item => item.id}
                     />
-                    <Button title="Write Data" onPress={writeData} />
+
+                    {error && <Text>Error: {error}</Text>}
                 </View>
-            )}
-            {error && <Text>Error: {error}</Text>}
-        </SafeAreaView>
+
+            </SafeAreaView>
+             :
+            <ConfigureDevice BluetoothUtil={BluetoothUtil} BleManager={BleManager} connectedDeviceBleId={connectedDeviceBleId}/>
+        }
+        {/*{showConfiguration() && <ConfigureDevice BluetoothUtil={BluetoothUtil} BleManager={BleManager} connectedDeviceBleId={connectedDeviceBleId}/> }*/}
     </>;
 };
 

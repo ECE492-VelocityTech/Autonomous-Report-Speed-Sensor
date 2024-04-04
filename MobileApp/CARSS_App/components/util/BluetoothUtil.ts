@@ -35,10 +35,12 @@ const BluetoothUtil = {
         console.debug("[handleStopScan] scan is stopped.");
     },
 
-    handleDiscoverPeripheral: (peripheral: Peripheral, setPeripherals: any) => {
-        console.debug("[handleDiscoverPeripheral] new BLE peripheral=", peripheral);
-        if (!peripheral.name) {
-            // peripheral.name = 'NO NAME';
+    isCarssDevice: function(name: String | undefined) {
+        return name && name.includes(Constants.BLEDeviceNamePrefix);
+    },
+
+    handleDiscoverPeripheral: function (peripheral: Peripheral, setPeripherals: any) {
+        if (!this.isCarssDevice(peripheral.name)) {
             return;
         }
         setPeripherals((map:  Map<string, Peripheral>) => {
@@ -50,6 +52,7 @@ const BluetoothUtil = {
         console.debug(
             `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`
         );
+        if (!setPeripherals) { return; }
         setPeripherals((map: Map<string, Peripheral>) => {
             let p = map.get(event.peripheral);
             if (p) {
@@ -103,7 +106,7 @@ const BluetoothUtil = {
         }
     },
 
-    connectPeripheral: async function(peripheral: Peripheral, setPeripherals, ) {
+    connectPeripheral: async function(peripheral: Peripheral, setPeripherals: any, ) {
         if (peripheral) {
             setPeripherals((map: Map<string, Peripheral>) => {
                 let p = map.get(peripheral.id);
@@ -197,12 +200,14 @@ const BluetoothUtil = {
                 connectedPeripheralId,
                 Constants.BLEServiceUUID,
                 Constants.BLECharUUID,
-                bytes.toJSON().data
+                bytes.toJSON().data,
+                Constants.BLEMaxBytes,
             );
-
             console.log("Success sent: " + message);
-        } catch (error) {
-            setError("Error: " + error.message);
+            return true;
+        } catch (error: any) {
+            if (setError) { setError("Error: " + error.message); }
+            return false;
         }
     },
 
