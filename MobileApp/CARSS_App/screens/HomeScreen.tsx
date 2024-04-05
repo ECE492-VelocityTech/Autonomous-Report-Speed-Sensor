@@ -24,6 +24,8 @@ const HomeScreen = ({navigation}: any) => {
         if (signedInUser) {
             setCurrentUser(signedInUser);
             await SessionUtil.setUserSignedIn(signedInUser);
+            // TODO Remove
+            console.log("Current Set User: ", SessionUtil.getCacheCurrentUserId(), SessionUtil.getCacheCurrentUserId())
             return true;
         }
         else {
@@ -38,8 +40,10 @@ const HomeScreen = ({navigation}: any) => {
     }
 
     const showDevicesForOwner = async () => {
-        let userDevices = await RestApi.getAllDevicesForOwner(sessionUtil.)
-        setDevices(userDevices);
+        let userDevices = await RestApi.getAllDevicesForOwner(sessionUtil.getCacheCurrentUserId())
+        if (userDevices) {
+            setDevices(userDevices);
+        }
     }
 
     const initHomePage = async function() {
@@ -65,7 +69,7 @@ const HomeScreen = ({navigation}: any) => {
                     {devices?.map((device: Device, key: number) => (
                         <>
                             {/*TODO: Show devices*/}
-                            <Text>{device.deviceNo}</Text>
+                            <Text>{device.name}</Text>
                         </>
                     ))}
                 </View>

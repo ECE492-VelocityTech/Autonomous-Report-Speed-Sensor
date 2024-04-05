@@ -3,6 +3,7 @@ import RestApi from "./RestApi.ts";
 
 let cacheCurrentUser: User | null = null;
 let cacheCurrentUserId: number = -1;
+let cacheUserDevices: Device[] = []
 
 const SessionUtil = {
     isSignedIn: async () => {
@@ -38,11 +39,21 @@ const SessionUtil = {
         cacheCurrentUserId = userId;
     },
 
+    getCacheDevices: function() {
+        return cacheUserDevices;
+    },
+
+    setCacheDevices: function(devices: Device[]) {
+        cacheUserDevices = devices
+    },
+
     /**
      * Sets the state for the current signed in user
      */
     setUserSignedIn: async function(user: User) {
         let ownerResp = await RestApi.ownerSignIn(user.user.email, "");
+        console.log("ownerResp", ownerResp)
+        if (!ownerResp) { return; } // TODO: Handle error
         SessionUtil.setCacheCurrentUser(user);
         SessionUtil.setCacheCurrentUserId(ownerResp.id);
     }

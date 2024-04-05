@@ -28,6 +28,7 @@ const SignIn = ({navigation}: any) => {
             const userInfo = await GoogleSignin.signIn();
             console.log(JSON.stringify(userInfo));
             await SessionUtil.setUserSignedIn(userInfo);
+            console.log("Current Set User SignIn: ", SessionUtil.getCacheCurrentUserId(), SessionUtil.getCacheCurrentUserId())
             navigation.navigate('Home')
         } catch (error: any) {
             console.log(JSON.stringify(error))

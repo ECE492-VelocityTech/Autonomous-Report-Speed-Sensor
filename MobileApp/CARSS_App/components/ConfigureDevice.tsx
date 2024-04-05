@@ -25,7 +25,7 @@ const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, Bl
             // TODO: Handle failure
             return;
         }
-        await RestApi.addDevice(SessionUtil.getCacheCurrentUserId(), toDevice(deviceName, address, 0, 0))
+        await RestApi.addDevice(SessionUtil.getCacheCurrentUserId(), toDevice(deviceName, address, 40))
         navigation.navigate('Home')
     };
 

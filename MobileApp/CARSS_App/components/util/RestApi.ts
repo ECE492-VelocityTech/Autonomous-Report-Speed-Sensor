@@ -1,11 +1,11 @@
-const serverURL = ""; // TODO: Fill in the server URL
+const serverURL = "http://129.128.215.79/api/v1"; // TODO: Fill in the server URL
 
 const RestApi = {
     /**
      * Tells the backend that a user has signed In
      */
     ownerSignIn: async function(email: string, address: string) {
-        const url = `${serverURL}/signIn`;
+        const url = `${serverURL}/owners/signIn`;
         const body = {
             email,
             address,
@@ -25,7 +25,7 @@ const RestApi = {
      * Adds new device to the given owner
      */
     addDevice: async function(ownerId: number, device: Device) {
-        const url = `${serverURL}/devices/owner/${ownerId}`;
+        const url = `${serverURL}/devices/create/${ownerId}`;
         const body = {
             device,
         }
@@ -51,8 +51,11 @@ const RestApi = {
                 'Content-Type': 'application/json',
             },
         });
-        return await response.json();
-        // TODO: Handle error
+        if (response.ok) {
+            return await response.json();
+        }
+        console.log("getAllDevicesForOwner ERR")
+        return [];
     },
 };
 

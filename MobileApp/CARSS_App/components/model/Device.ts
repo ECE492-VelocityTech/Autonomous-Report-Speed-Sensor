@@ -1,12 +1,11 @@
 type Device = {
-    deviceNo: string;
+    name: string;
     address: string;
-    lat: number;
-    lng: number;
+    speedLimit: number;
 };
 
-const toDevice = (deviceNo: string, address: string, lat: number, lng: number): Device => {
+const toDevice = (name: string, address: string, speedLimit: number): Device => {
     return {
-        deviceNo, address, lat, lng,
+        name, address, speedLimit,
     }
 }
