@@ -7,6 +7,7 @@ import { Line } from "react-chartjs-2";
 const BASE_URL = "http://localhost:8080/api/v1/devices";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
+import radiatorSprings from "../images/radiator_springs.jpeg";
 
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;
@@ -35,7 +36,22 @@ function TrafficData() {
     ) {
         return (
             <>
-                <h1> Please select a device </h1>
+                <div
+                    style={{
+                        backgroundImage: `url(${radiatorSprings})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        height: "110vh",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "flex-start",
+                    }}
+                >
+                    <h1 style={{ color: "black", fontWeight: "bold" }}>
+                        {" "}
+                        Please select a device{" "}
+                    </h1>
+                </div>
             </>
         );
     }
@@ -114,77 +130,90 @@ function TrafficData() {
 
     return (
         <>
-            <div className="container mt-5">
-                <div className="card">
-                    <div className="card-header">Traffic Data</div>
-                    <div className="card-body">
-                        <h5 className="card-title"></h5>
-                        <p className="card-text">
-                            Please select the range you would like to filter by:
-                        </p>
-                        <Row>
-                            <Col sm={1}>
-                                <div className="form-check">
-                                    <label className="form-check-label">
-                                        <input
-                                            type="radio"
-                                            className="form-check-input"
-                                            name="optionsRadios"
-                                            id="optionsRadios1"
-                                            value="option1"
-                                            checked={isSingleDay}
-                                            onChange={handleRadioChange}
-                                        />
-                                        Date
-                                    </label>
-                                </div>
-                                <div className="form-check">
-                                    <label className="form-check-label">
-                                        <input
-                                            type="radio"
-                                            className="form-check-input"
-                                            name="optionsRadios"
-                                            id="optionsRadios2"
-                                            value="option2"
-                                            checked={!isSingleDay}
-                                            onChange={handleRadioChange}
-                                        />
-                                        Range
-                                    </label>
-                                </div>
-                            </Col>
-                            <Col sm={4}>
-                                <div style={{ position: "relative" }}>
-                                    <div>
-                                        <FontAwesomeIcon
-                                            icon={faCalendar}
-                                            onClick={toggleCalendar}
-                                            className="calendarIcon"
-                                        />
+            <div
+                style={{
+                    backgroundImage: `url(${radiatorSprings})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    height: "110vh",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "flex-start", // Change alignItems to "flex-start" to align the logo at the top
+                }}
+            >
+                <div className="container mt-5">
+                    <div className="card">
+                        <div className="card-header">Traffic Data</div>
+                        <div className="card-body">
+                            <h5 className="card-title"></h5>
+                            <p className="card-text">
+                                Please select the range you would like to filter
+                                by:
+                            </p>
+                            <Row>
+                                <Col sm={1}>
+                                    <div className="form-check">
+                                        <label className="form-check-label">
+                                            <input
+                                                type="radio"
+                                                className="form-check-input"
+                                                name="optionsRadios"
+                                                id="optionsRadios1"
+                                                value="option1"
+                                                checked={isSingleDay}
+                                                onChange={handleRadioChange}
+                                            />
+                                            Date
+                                        </label>
                                     </div>
-                                    {showCalendar && (
-                                        <div
-                                            style={{
-                                                position: "absolute",
-                                                top: "100%",
-                                                left: 0,
-                                                zIndex: 999,
-                                            }}
-                                        >
-                                            <Calendar
-                                                isSingleDay={isSingleDay}
+                                    <div className="form-check">
+                                        <label className="form-check-label">
+                                            <input
+                                                type="radio"
+                                                className="form-check-input"
+                                                name="optionsRadios"
+                                                id="optionsRadios2"
+                                                value="option2"
+                                                checked={!isSingleDay}
+                                                onChange={handleRadioChange}
+                                            />
+                                            Range
+                                        </label>
+                                    </div>
+                                </Col>
+                                <Col sm={4}>
+                                    <div style={{ position: "relative" }}>
+                                        <div>
+                                            <FontAwesomeIcon
+                                                icon={faCalendar}
+                                                onClick={toggleCalendar}
+                                                className="calendarIcon"
                                             />
                                         </div>
-                                    )}
-                                </div>
-                            </Col>
-                        </Row>
-                    </div>
-                    <div>
-                        <Line data={chartData} />
-                    </div>
-                    <div className="card-footer text-muted">
-                        &copy; Velocity Tech
+                                        {showCalendar && (
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    top: "100%",
+                                                    left: 0,
+                                                    zIndex: 999,
+                                                }}
+                                            >
+                                                <Calendar
+                                                    isSingleDay={isSingleDay}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                </Col>
+                            </Row>
+                        </div>
+                        <div>
+                            <Line data={chartData} />
+                        </div>
+                        <div className="card-footer text-muted">
+                            &copy; Velocity Tech
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import logo from "../images/logo.png";
 
 const NavBar = () => {
     const location = useLocation();
@@ -19,6 +20,15 @@ const NavBar = () => {
         <nav className="navbar navbar-expand-lg bg-dark" data-bs-theme="dark">
             <div className="collapse navbar-collapse" id="navbarColor02">
                 <ul className="navbar-nav me-auto">
+                    <li className="nav-item">
+                        <a className="logo">
+                            <img
+                                src={logo}
+                                alt="Logo"
+                                style={{ width: "100px", height: "50px" }}
+                            />
+                        </a>
+                    </li>
                     <li className="nav-item">
                         <a className="nav-link active" href="/">
                             Home
