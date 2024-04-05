@@ -7,25 +7,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 
 function App() {
-    useEffect(() => {
-        const fetchApiKey = async () => {
-            try {
-                const response = await fetch(
-                    "http://localhost:8080/api/v1/auth/googleApiKey"
-                );
-                if (!response.ok) {
-                    throw new Error("Failed to fetch API key");
-                }
-                const data = await response.text();
-                sessionStorage.setItem("googleApiKey", data);
-            } catch (error) {
-                console.error("Error fetching API key:", error);
-            }
-        };
-
-        fetchApiKey();
-    }, []);
-
     return (
         <>
             <Router>
