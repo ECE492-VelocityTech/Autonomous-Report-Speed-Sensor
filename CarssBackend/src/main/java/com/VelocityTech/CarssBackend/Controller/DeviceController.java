@@ -4,6 +4,7 @@ import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
+import com.VelocityTech.CarssBackend.ViewModel.DeviceVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -30,6 +32,12 @@ public class DeviceController {
     @PostMapping("/owner/{ownerId}")
     public ResponseEntity<Device> addDeviceToOwner(@PathVariable Long ownerId, @RequestBody Device device) {
         Device newDevice = deviceService.addDeviceToOwner(ownerId, device);
+        return new ResponseEntity<>(newDevice, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/create/{ownerId}")
+    public ResponseEntity<Device> createDevice(@PathVariable Long ownerId, @RequestBody DeviceVM deviceVM) {
+        Device newDevice = deviceService.createNewDevice(deviceVM, ownerId);
         return new ResponseEntity<>(newDevice, HttpStatus.CREATED);
     }
 
@@ -86,5 +94,11 @@ public class DeviceController {
     public ResponseEntity<List<Device>> getAllDevicesForOwner(@PathVariable long ownerId) {
         List<Device> devices = deviceService.getAllDevicesForOwner(ownerId);
         return new ResponseEntity<>(devices, HttpStatus.OK);
+    }
+
+    @GetMapping("/time")
+    public ResponseEntity<String> getTime() {
+        Date date = new Date();
+        return new ResponseEntity<>(date.toString(), HttpStatus.OK);
     }
 }

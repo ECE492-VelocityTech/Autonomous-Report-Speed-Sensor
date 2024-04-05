@@ -5,6 +5,7 @@ import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.Owner;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
+import com.VelocityTech.CarssBackend.ViewModel.DeviceVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,18 @@ public class DeviceService {
         return deviceRepository.save(device);
     }
 
+    public Device createNewDevice(DeviceVM deviceVM, Long ownerId) {
+        Owner owner = ownerRepository.findById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Owner not found with id: " + ownerId));
+        Device device = deviceVM.toDevice(owner);
+        if (device.getAddress() != null) {
+            Coordinates coordinates = fetchCoordinates(device.getAddress());
+            device.setLat(coordinates.getLatitude());
+            device.setLng(coordinates.getLongitude());
+        }
+        return deviceRepository.save(device);
+    }
+
     @Transactional(readOnly = true)
     public List<Device> getAllDevices() {
         return deviceRepository.findAll();
@@ -71,8 +84,8 @@ public class DeviceService {
     public Device updateDevice(Long id, Device deviceDetails) {
         return deviceRepository.findById(id)
                 .map(device -> {
-                    if (deviceDetails.getDeviceNo() != null)
-                        device.setDeviceNo(deviceDetails.getDeviceNo());
+                    if (deviceDetails.getName() != null)
+                        device.setName(deviceDetails.getName());
                     if (deviceDetails.getAddress() != null) {
                         device.setAddress(deviceDetails.getAddress());
                         Coordinates coordinates = fetchCoordinates(device.getAddress());

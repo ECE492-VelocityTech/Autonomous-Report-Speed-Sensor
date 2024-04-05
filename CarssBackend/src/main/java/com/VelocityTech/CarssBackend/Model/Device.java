@@ -14,8 +14,9 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "deviceSequence")
     @SequenceGenerator(name = "deviceSequence", sequenceName = "deviceSequence", allocationSize = 1)
     private Long id;
-    private String deviceNo;
+    private String name;
     private String address;
+    private float speedLimit;
     private double lat;
     private double lng;
 
@@ -29,10 +30,11 @@ public class Device {
 
     public Device(){}
 
-    public Device(String deviceNo, String address, Owner owner) {
-        this.deviceNo = deviceNo;
+    public Device(String name, String address, float speedLimit, Owner owner) {
+        this.name = name;
         this.address = address;
         this.owner = owner;
+        this.speedLimit = speedLimit;
     }
 
     public Long getId() {
@@ -43,12 +45,12 @@ public class Device {
         this.id = id;
     }
 
-    public String getDeviceNo() {
-        return deviceNo;
+    public String getName() {
+        return name;
     }
 
-    public void setDeviceNo(String deviceNo) {
-        this.deviceNo = deviceNo;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getAddress() {
