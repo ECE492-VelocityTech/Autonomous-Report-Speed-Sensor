@@ -27,6 +27,7 @@
 }
 
 .filtersContainer {
+    padding: 10px;
     display: flex;
     justify-content: center;
     gap: 20px;
@@ -38,13 +39,14 @@
 }
 
 .scrollableChartContainer {
-    overflow-x: auto; /* Enable horizontal scrolling */
-    max-width: 100%; /* Adjust based on your layout needs */
+    overflow-x: auto;
+    max-width: 100%;
 }
 
 .chartContainer {
-    min-width: 600px; /* Set a minimum width to ensure there's enough room for your data */
-    height: 400px; /* Adjust height as needed */
+    padding: 5px;
+    min-width: 600px;
+    height: 400px;
 }
 
 .additionalFilter {
