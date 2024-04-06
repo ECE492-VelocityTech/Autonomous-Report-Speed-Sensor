@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { Chart as ChartJS, registerables, defaults } from "chart.js";
-ChartJS.register(...registerables);
-import { Container, Row, Col } from "react-bootstrap";
-import Calendar from "./Calendar";
+import { Row, Col } from "react-bootstrap";
+import Calendar from "../../component/Calendar";
 import { Line } from "react-chartjs-2";
-const BASE_URL = "http://localhost:8080/api/v1/devices";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
-import radiatorSprings from "../images/radiator_springs.jpeg";
+
+ChartJS.register(...registerables);
+const BASE_URL = "http://carss.chickenkiller.com/api/v1/devices";
 
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;
@@ -23,7 +23,6 @@ function TrafficData() {
     const [trafficData, setTrafficData] = useState<TrafficDataProps[]>([]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isSingleDay, setIsSingleDay] = useState(false);
-    const [isdummy, setIsDummy] = useState(true);
     const [showCalendar, setShowCalendar] = useState(false);
 
     const toggleCalendar = () => {
@@ -38,7 +37,6 @@ function TrafficData() {
             <>
                 <div
                     style={{
-                        backgroundImage: `url(${radiatorSprings})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         height: "110vh",
@@ -61,7 +59,7 @@ function TrafficData() {
             let url =
                 BASE_URL +
                 "/" +
-                sessionStorage.getItem("deviceNumber") +
+                sessionStorage.getItem("deviceId") +
                 "/trafficData";
             if (
                 sessionStorage.getItem("startDate") != null &&
@@ -73,6 +71,7 @@ function TrafficData() {
                     "&endDate=" +
                     sessionStorage.getItem("endDate");
             }
+
             const response = await fetch(url);
             if (response.ok) {
                 const trafficData = await response.json();
@@ -120,9 +119,9 @@ function TrafficData() {
         ],
     };
 
-    const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
-    };
+    // const toggleDropdown = () => {
+    //     setIsDropdownOpen(!isDropdownOpen);
+    // };
 
     const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setIsSingleDay(event.target.value === "option1");
@@ -132,7 +131,6 @@ function TrafficData() {
         <>
             <div
                 style={{
-                    backgroundImage: `url(${radiatorSprings})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     height: "110vh",
@@ -217,7 +215,6 @@ function TrafficData() {
                     </div>
                 </div>
             </div>
-            {/* <Calendar setIsOpen={setIsDummy} isSingleDay={false} /> */}
         </>
     );
 }
