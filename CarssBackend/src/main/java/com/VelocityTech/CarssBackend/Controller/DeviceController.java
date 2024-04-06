@@ -12,9 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+
+import static com.VelocityTech.CarssBackend.Configuration.Constants.TimeSyncFormatter;
 
 @RestController
 @RequestMapping("/api/v1/devices")
@@ -99,7 +102,7 @@ public class DeviceController {
 
     @GetMapping("/time")
     public ResponseEntity<String> getTime() {
-        Date date = new Date();
-        return new ResponseEntity<>(date.toString(), HttpStatus.OK);
+        LocalDateTime date = LocalDateTime.now();
+        return new ResponseEntity<>(date.format(TimeSyncFormatter), HttpStatus.OK);
     }
 }

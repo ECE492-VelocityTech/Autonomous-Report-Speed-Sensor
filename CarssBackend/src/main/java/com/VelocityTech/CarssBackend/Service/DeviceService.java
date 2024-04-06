@@ -9,6 +9,7 @@ import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
 import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONObject;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -57,7 +60,7 @@ public class DeviceService {
 
     public Device createNewDevice(NewDeviceReqVM deviceVM, Long ownerId) {
         Owner owner = ownerRepository.findById(ownerId)
-                .orElseThrow(() -> new RuntimeException("Owner not found with id: " + ownerId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Owner not found with id: " + ownerId));
         Device device = deviceVM.toDevice(owner);
         if (device.getAddress() != null) {
             Coordinates coordinates = fetchCoordinates(device.getAddress());
