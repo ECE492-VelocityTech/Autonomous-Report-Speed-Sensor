@@ -69,7 +69,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
       const char* deviceName = jsonDoc["deviceName"];
       const char* wifiName = jsonDoc["wifiName"];
       const char* wifiPassword = jsonDoc["wifiPassword"];
-      const char* address = jsonDoc["address"];
+      long deviceId = jsonDoc["deviceId"].as<long>();
 
       // Print the extracted fields
       Serial.println("Extracted fields:");
@@ -79,20 +79,23 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
       Serial.println(wifiName);
       Serial.print("WiFi Password: ");
       Serial.println(wifiPassword);
-      Serial.print("Address: ");
-      Serial.println(address);
+      Serial.print("Id: ");
+      Serial.println(deviceId);
       config.deviceName = String(deviceName);
       config.wifiName = String(wifiName);
       saveConfiguration(config);
+      sendConfigToWifiEsp(config);
     }
 };
 
 void setup() {
-    Serial.begin(115200);
-    Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
+    Serial.begin(9600);
+    // Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
+    Serial2.begin(9600);
     pinMode(LED_PIN, OUTPUT);
     initBle();
     loadConfiguration(config);
+    sendConfigToWifiEsp(config);
 }
 
 void initBle() {

@@ -117,6 +117,18 @@ const compStyles = StyleSheet.create({
     deviceTileStatus: {
         fontSize: 16,
     },
+
+    circle: {
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        marginLeft: 15,
+    },
+
+    horizontalView: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    }
 });
 
 export default compStyles;

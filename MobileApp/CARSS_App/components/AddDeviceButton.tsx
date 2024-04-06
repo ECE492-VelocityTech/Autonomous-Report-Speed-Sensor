@@ -5,6 +5,7 @@ import styleUtil from "./util/StyleUtil.ts";
 
 const AddDeviceButton = ({navigation}: any) => {
     function addDeviceHandler() {
+        console.log("addDeviceHandler")
         navigation.navigate("AddDevice");
     }
 

@@ -1,4 +1,4 @@
-import { Device } from "../model/Device.ts";
+import { DeviceReq } from "../model/DeviceReq.ts";
 
 const serverURL = "http://129.128.215.79/api/v1"; // TODO: Fill in the server URL
 
@@ -26,7 +26,7 @@ const RestApi = {
     /**
      * Adds new device to the given owner
      */
-    addDevice: async function(ownerId: number, device: Device) {
+    addDevice: async function(ownerId: number, device: DeviceReq) {
         console.log("addDevice", ownerId, device);
         const url = `${serverURL}/devices/create/${ownerId}`;
         const body = device;

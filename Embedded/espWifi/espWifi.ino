@@ -16,6 +16,8 @@
 #include <WiFiUdp.h>
 #include <TimeLib.h>
 
+#include "config.h"
+
 //#define REQUEST_ADD_OWNER 1
 //#define REQUEST_ADD_DEVICE_TO_OWNER 2
 #define REQUEST_ADD_TRAFFIC_DATA 1
@@ -28,12 +30,16 @@ String deviceId = "11";
 String trafficDataEndpoint = "http://carss.chickenkiller.com/api/v1/trafficData"; 
 String ownerEndpoint = "http://carss.chickenkiller.com/api/v1/owners";
 String devicesEndpoint = "http://carss.chickenkiller.com/api/v1/devices";
+String timeEndpoint = "http://carss.chickenkiller.com/api/v1/devices/time";
 float speeds[10]; // Array to store speeds
 String timestamps[10];
 const char* ntpServer = "pool.ntp.org";
-String currYear = "2024";
-String currMonth = "04";
-String currDay = "06";
+String currYear = "";
+String currMonth = "";
+String currDay = "";
+int currHour = 0;
+int currMin = 0;
+int currSecond = 0;
 const int  gmtOffset_sec = -6 * 3600;  // GMT offset in seconds
 const int   daylightOffset_sec = 3600; // Daylight offset in seconds
 
@@ -44,19 +50,29 @@ NTPClient timeClient(udp, ntpServer, gmtOffset_sec, daylightOffset_sec);
 int btnGPIO = 0;
 int btnState = false;
 
-
+Configuration config;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial2.begin(9600);
   
-  delay(10);
+  delay(5000);
 
+  bool foundConfig = loadConfiguration(config);
+  receiveConfigFromBleEsp(config);
+  // if (!foundConfig) {  } 
 //  getWifiCredentials();
 //  getDeviceId();
   connectToWifi();
   timeClient.begin();
-timeClient.update();
+  timeClient.update();
+  updateTime();
+  
+  currHour = timeClient.getHours();
+  currMin = timeClient.getMinutes();
+  currSecond = timeClient.getSeconds();
+
+  currYear + "-" + currMonth + "-" + currDay + "T" + timeClient.getFormattedTime();
 
   Serial.println("TIME:");
   Serial.println(timeClient.getFormattedTime());
@@ -82,23 +98,25 @@ void loop()
 
 void getWifiCredentials(){
   // Get WiFi username and password from user input
-  Serial.println("Enter WiFi SSID:");
+  Serial.println("Ready to receive data");
   while (Serial.available() == 0) {
     // Wait for user input
   }
   ssid = Serial.readStringUntil('\n');
   Serial.println("Received SSID: " + ssid);
+  Serial.println("ACK");
   
-  Serial.println("Enter WiFi Password:");
+//  Serial.println("Ready to receive Wifi password");
   while (Serial.available() == 0) {
     // Wait for user input
   }
   password = Serial.readStringUntil('\n');
+//  Serial.println("ACK");
 }
 
 void getDeviceId(){
   
-  Serial.println("Enter Device ID:");
+  Serial.println("Ready to receive device ID");
   while (Serial.available() == 0) {
     // Wait for user input
   }
@@ -109,13 +127,15 @@ void getDeviceId(){
 void connectToWifi() {
   // Connect to WiFi
   Serial.print("[WiFi] Connecting to ");
-  Serial.println(ssid);
+  Serial.println(config.wifiName);
+  Serial.println(config.wifiPassword);
+  Serial.println(config.deviceId);
 
   int tryDelay = 600;
   int numberOfTries = 50;
 
   while (true) {
-    WiFi.begin(ssid.c_str(), password.c_str());
+    WiFi.begin(config.wifiName.c_str(), config.wifiPassword.c_str());
 
     // Retry connection until successful or maximum tries reached
     while (WiFi.status() != WL_CONNECTED && numberOfTries > 0) {
@@ -277,6 +297,7 @@ void addTrafficData() {
     Serial.println(jsonStr);
 
     // Make HTTP POST request
+    Serial.println("Endpoint: "+ trafficDataEndpoint + "/device/" + config.deviceId);
     makeHttpPostRequest(trafficDataEndpoint + "/device/" + deviceId, jsonStr);
   }
 }
@@ -364,6 +385,49 @@ void makeHttpGetRequest() {
   // Close the connection
   http.end();
 }
+
+void updateTime() {
+  while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0,0,0,0)){
+    connectToWifi();
+  }
+  HTTPClient http;
+  http.setTimeout(10000);
+
+  // Start the HTTP request
+  http.begin(timeEndpoint);
+
+  // Send the GET request
+  int httpResponseCode = http.GET();
+
+  // Check for a successful response
+  if (httpResponseCode > 0) {
+    Serial.print("HTTP Response Code: ");
+    Serial.println(httpResponseCode);
+    
+    // Read the response from the server
+    String response = http.getString();
+
+    // Extract year, month, and day from the response
+    int hyphenIndex1 = response.indexOf('-');
+    int hyphenIndex2 = response.lastIndexOf('-');
+    if (hyphenIndex1 != -1 && hyphenIndex2 != -1 && hyphenIndex2 > hyphenIndex1) {
+      currYear = response.substring(0, hyphenIndex1);
+      currMonth = response.substring(hyphenIndex1 + 1, hyphenIndex2);
+      currDay = response.substring(hyphenIndex2 + 1);
+    } else {
+      Serial.println("Error parsing response: Invalid date format");
+    }
+  } else {
+    Serial.print("HTTP Request failed, error: ");
+    Serial.print(httpResponseCode);
+    Serial.print(" - ");
+    Serial.println(http.errorToString(httpResponseCode));
+  }
+
+  // Close the connection
+  http.end();
+}
+
 String getTimestamp() {
   timeClient.update(); // Update time from NTP server
 
@@ -372,31 +436,14 @@ String getTimestamp() {
   int currentMinute = timeClient.getMinutes();
   int currentSecond = timeClient.getSeconds();
 
-  // Check if it's midnight (hour = 0, minute = 0, second = 0)
-  if (currentHour == 0 && currentMinute == 0 && currentSecond == 0) {
-    // Increment the day
-    int currentDay = currDay.toInt();
-    currentDay++; // Increment day by one
-
-    // Check if the month needs to be updated
-    int daysInMonth = getDaysInMonth(currYear.toInt(), currMonth.toInt());
-    if (currentDay > daysInMonth) {
-      currentDay = 1; // Reset day to 1
-      int currentMonth = currMonth.toInt();
-      currentMonth++; // Increment month by one
-      if (currentMonth > 12) {
-        // Increment the year if the month exceeds 12
-        int currentYear = currYear.toInt();
-        currentYear++; // Increment year by one
-        currYear = String(currentYear); // Update year
-        currMonth = "1"; // Reset month to January (1)
-      } else {
-        currMonth = String(currentMonth); // Update month
-      }
-    }
-
-    currDay = String(currentDay); // Update day
+  if (currentHour < currHour){
+    updateTime();
   }
+//
+//  currHour = String(currentHour);
+//  currMin = String(currentMinute);
+//  currSecond = String(currentSecond);
+  
 
   // Construct timestamp string
   String timestamp = currYear + "-" + currMonth + "-" + currDay + "T" + timeClient.getFormattedTime(); // Get formatted time

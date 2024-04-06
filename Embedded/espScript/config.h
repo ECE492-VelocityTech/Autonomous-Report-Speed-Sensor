@@ -9,10 +9,12 @@ struct Configuration {
   String deviceName;
   String wifiName;
   String wifiPassword;
-  String address;
+  long deviceId;
 };
 
 void saveConfiguration(const Configuration& config);
 bool loadConfiguration(Configuration& config);
+
+void sendConfigToWifiEsp(const Configuration& config);
 
 #endif // CONFIG_H

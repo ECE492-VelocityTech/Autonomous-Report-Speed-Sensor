@@ -4,7 +4,7 @@ import styleUtil from "./util/StyleUtil.ts";
 import React, { useState } from "react";
 import RestApi from "./util/RestApi.ts";
 import SessionUtil from "./util/SessionUtil.ts";
-import { DeviceUtil } from "./model/Device.ts";
+import { DeviceUtil } from "./model/DeviceReq.ts";
 import add = Animated.add;
 
 const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, BleManager, navigation}: any) => {
@@ -28,6 +28,7 @@ const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, Bl
         }
         let device = DeviceUtil.toDevice(deviceName, address, Number(speedLimit));
         let deviceResp = await RestApi.addDevice(SessionUtil.getCacheCurrentUserId(), device)
+        console.log("deviceResp", deviceResp)
         if (!deviceResp) { return; } // Handle error
 
         const bodyPeri = {

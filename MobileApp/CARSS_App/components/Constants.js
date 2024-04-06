@@ -16,6 +16,13 @@ const Constants = {
     LightForeground: "#363636",
     LightButtonBackground: "#6f90f1",
     LightTileBackground: "#c4daf8",
+
+    RedCircleColor: "#701e1e",
+    GreenCircleColor: "#1a441b"
+  },
+
+  Layout: {
+    AddressCharThreshold: 20,
   }
 };
 
