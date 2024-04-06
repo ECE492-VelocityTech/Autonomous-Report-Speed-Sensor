@@ -1,0 +1,82 @@
+.darkBG {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.centered {
+    z-index: 1001;
+}
+
+.modal {
+    position: relative;
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.heading {
+    margin: 0;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: #333;
+}
+
+.modalContent {
+    margin-top: 20px;
+    line-height: 1.5;
+}
+
+.modalActions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.actionBtn,
+.cancelBtn {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.actionBtn {
+    background-color: #04aa6d;
+    color: white;
+}
+
+.cancelBtn {
+    background-color: #000;
+    color: white;
+}
+
+/* Adjustments for responsiveness */
+@media (max-width: 600px) {
+    .modal {
+        width: 90%;
+    }
+}

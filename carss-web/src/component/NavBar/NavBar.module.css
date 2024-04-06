@@ -1,0 +1,54 @@
+/* NavBar.module.css */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    color: white;
+    padding: 0 20px;
+}
+
+.logoImage {
+    width: 100px;
+    height: 50px;
+    filter: invert(100%);
+    transition: filter 0.3s ease;
+}
+
+.navList {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem {
+    margin: 0 10px;
+}
+
+.navLink {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+}
+
+.navLink:hover,
+.navLinkActive {
+    color: #04aa6d;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .navList {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navItem {
+        margin: 5px 0;
+    }
+}

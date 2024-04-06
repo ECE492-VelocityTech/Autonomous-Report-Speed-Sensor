@@ -1,0 +1,37 @@
+.homeContainer {
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+    padding-top: 100px;
+}
+
+.logo {
+    max-width: 200px;
+    margin-bottom: 30px;
+}
+
+.content {
+    max-width: 600px;
+}
+
+.ctaButton {
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #04aa6d;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.ctaButton:hover {
+    background-color: #037f58;
+    color: white;
+}
