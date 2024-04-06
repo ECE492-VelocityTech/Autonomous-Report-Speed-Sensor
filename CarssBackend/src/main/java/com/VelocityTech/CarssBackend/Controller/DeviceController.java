@@ -4,6 +4,7 @@ import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
+import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
 import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -91,8 +92,8 @@ public class DeviceController {
     }
 
     @GetMapping("/owner/{ownerId}")
-    public ResponseEntity<List<Device>> getAllDevicesForOwner(@PathVariable long ownerId) {
-        List<Device> devices = deviceService.getAllDevicesForOwner(ownerId);
+    public ResponseEntity<List<DeviceRespVM>> getAllDevicesForOwner(@PathVariable long ownerId) {
+        List<DeviceRespVM> devices = deviceService.getAllDevicesForOwner(ownerId);
         return new ResponseEntity<>(devices, HttpStatus.OK);
     }
 

@@ -2,6 +2,7 @@ package com.VelocityTech.CarssBackend.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,7 +21,8 @@ public class Device {
     private float speedLimit;
     private double lat;
     private double lng;
-    private Date lastPingTime;
+    private LocalDateTime lastPingTime;
+    private DeviceMode deviceMode = DeviceMode.Active;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
@@ -32,11 +34,12 @@ public class Device {
 
     public Device(){}
 
-    public Device(String name, String address, float speedLimit, Owner owner) {
+    public Device(String name, String address, float speedLimit, Owner owner, LocalDateTime lastPingTime) {
         this.name = name;
         this.address = address;
         this.owner = owner;
         this.speedLimit = speedLimit;
+        this.lastPingTime = lastPingTime;
     }
 
     public Long getId() {
@@ -82,6 +85,22 @@ public class Device {
     public void addTrafficData(TrafficData data) {
         trafficData.add(data);
         data.setDevice(this);
+    }
+
+    public LocalDateTime getLastPingTime() {
+        return lastPingTime;
+    }
+
+    public void setLastPingTime(LocalDateTime lastPingTime) {
+        this.lastPingTime = lastPingTime;
+    }
+
+    public DeviceMode getDeviceMode() {
+        return deviceMode;
+    }
+
+    public void setDeviceMode(DeviceMode deviceMode) {
+        this.deviceMode = deviceMode;
     }
 
     public void removeTrafficData(TrafficData data) {

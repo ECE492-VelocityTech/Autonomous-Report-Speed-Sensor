@@ -5,6 +5,7 @@ import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.Owner;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
+import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
 import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,8 +72,9 @@ public class DeviceService {
         return deviceRepository.findAll();
     }
 
-    public List<Device> getAllDevicesForOwner(long ownerId) {
-        return deviceRepository.findByOwnerId(ownerId);
+    public List<DeviceRespVM> getAllDevicesForOwner(long ownerId) {
+        List<Device> devices = deviceRepository.findByOwnerId(ownerId);
+        return devices.stream().map(DeviceRespVM::fromDevice).toList();
     }
 
     @Transactional(readOnly = true)
