@@ -1,3 +1,5 @@
+import { Device } from "../model/Device.ts";
+
 const serverURL = "http://129.128.215.79/api/v1"; // TODO: Fill in the server URL
 
 const RestApi = {
@@ -25,10 +27,10 @@ const RestApi = {
      * Adds new device to the given owner
      */
     addDevice: async function(ownerId: number, device: Device) {
+        console.log("addDevice", ownerId, device);
         const url = `${serverURL}/devices/create/${ownerId}`;
-        const body = {
-            device,
-        }
+        const body = device;
+        console.log("addDevice", device)
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -36,7 +38,12 @@ const RestApi = {
             },
             body: JSON.stringify(body),
         });
-        return await response.json();
+        if (response.ok) {
+            return await response.json();
+        } else {
+            return {id: -1}
+        }
+
         // TODO: Handle error
     },
 

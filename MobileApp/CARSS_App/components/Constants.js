@@ -11,9 +11,11 @@ const Constants = {
     DarkBackground: "#2b2b2b",
     DarkForeground: "#FFFFFF",
     DarkButtonBackground: "#122e65",
+    DarkTileBackground: "#626262",
     LightBackground: "#EAEAEA",
     LightForeground: "#363636",
     LightButtonBackground: "#6f90f1",
+    LightTileBackground: "#c4daf8",
   }
 };
 

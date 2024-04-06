@@ -4,6 +4,8 @@ import styleUtil from "./util/StyleUtil.ts";
 import React, { useState } from "react";
 import RestApi from "./util/RestApi.ts";
 import SessionUtil from "./util/SessionUtil.ts";
+import { DeviceUtil } from "./model/Device.ts";
+import add = Animated.add;
 
 const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, BleManager, navigation}: any) => {
     const [value, setValue] = useState("");
@@ -12,21 +14,37 @@ const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, Bl
     const [wifiName, setWifiName] = useState('');
     const [wifiPassword, setWifiPassword] = useState('');
     const [address, setAddress] = useState('');
+    const [speedLimit, setSpeedLimit] = useState('');
+
+    function validInput() {
+        if (isNaN(Number(speedLimit))) { return false; }
+        return true;
+    }
 
     const handleSubmit = async function() {
-        const body = {
+        if (!validInput()) {
+            console.log("Invalid Input");
+            return; // handle error
+        }
+        let device = DeviceUtil.toDevice(deviceName, address, Number(speedLimit));
+        let deviceResp = await RestApi.addDevice(SessionUtil.getCacheCurrentUserId(), device)
+        if (!deviceResp) { return; } // Handle error
+
+        const bodyPeri = {
+            deviceId: deviceResp.id,
             deviceName,
             wifiName,
             wifiPassword,
             address,
         }
-        const configSuccess = await BluetoothUtil.writeDataToPeripheral(connectedDeviceBleId, JSON.stringify(body), setError);
+        const configSuccess = await BluetoothUtil.writeDataToPeripheral(connectedDeviceBleId, JSON.stringify(bodyPeri), setError);
+        console.log("configSuccess", configSuccess);
         if (!configSuccess) {
             // TODO: Handle failure
             return;
         }
-        await RestApi.addDevice(SessionUtil.getCacheCurrentUserId(), toDevice(deviceName, address, 40))
-        navigation.navigate('Home')
+
+        navigation?.navigate('Home')
     };
 
     const writeData = async () => {
@@ -65,6 +83,13 @@ const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, Bl
                     placeholder="Enter Address"
                     value={address}
                     onChangeText={setAddress}
+                />
+                <Text style={compStyles.inputHeading}>Speed Limit*</Text>
+                <TextInput
+                    style={compStyles.inputField}
+                    placeholder="KPH"
+                    value={speedLimit}
+                    onChangeText={setSpeedLimit}
                 />
                 <Button title="Submit" onPress={handleSubmit} />
             </View>

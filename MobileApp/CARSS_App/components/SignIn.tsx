@@ -26,6 +26,7 @@ const SignIn = ({navigation}: any) => {
         try {
             await GoogleSignin.hasPlayServices();
             const userInfo = await GoogleSignin.signIn();
+            console.log("googleSignIn", userInfo)
             console.log(JSON.stringify(userInfo));
             await SessionUtil.setUserSignedIn(userInfo);
             console.log("Current Set User SignIn: ", SessionUtil.getCacheCurrentUserId(), SessionUtil.getCacheCurrentUserId())

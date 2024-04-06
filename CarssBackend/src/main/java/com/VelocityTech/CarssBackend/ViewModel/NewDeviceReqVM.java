@@ -3,12 +3,12 @@ package com.VelocityTech.CarssBackend.ViewModel;
 import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.Owner;
 
-public class DeviceVM {
+public class NewDeviceReqVM {
     private String name;
     private String address;
     private float speedLimit;
 
-    public DeviceVM(String name, String address, float speedLimit) {
+    public NewDeviceReqVM(String name, String address, float speedLimit) {
         this.name = name;
         this.address = address;
         this.speedLimit = speedLimit;

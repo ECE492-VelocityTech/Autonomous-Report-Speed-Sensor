@@ -10,6 +10,8 @@ import AddDeviceButton from "../components/AddDeviceButton.tsx";
 import RestApi from "../components/util/RestApi.ts";
 import signIn from "../components/SignIn.tsx";
 import compStyles from "../components/compStyles.ts";
+import { Device } from "../components/model/Device.ts";
+import DeviceTile from "../components/DeviceTile.tsx";
 
 const HomeScreen = ({navigation}: any) => {
     const [currentUser, setCurrentUser] = useState<User>();
@@ -21,6 +23,7 @@ const HomeScreen = ({navigation}: any) => {
             navigation.navigate('SignIn');
         }
         let signedInUser = await sessionUtil.getCurrentUser();
+        console.log("determineIfSignedIn|signedInUser", signedInUser)
         if (signedInUser) {
             setCurrentUser(signedInUser);
             await SessionUtil.setUserSignedIn(signedInUser);
@@ -40,7 +43,9 @@ const HomeScreen = ({navigation}: any) => {
     }
 
     const showDevicesForOwner = async () => {
+        console.log("showDevicesForOwner")
         let userDevices = await RestApi.getAllDevicesForOwner(sessionUtil.getCacheCurrentUserId())
+        console.log("userDevices", userDevices)
         if (userDevices) {
             setDevices(userDevices);
         }
@@ -49,12 +54,17 @@ const HomeScreen = ({navigation}: any) => {
     const initHomePage = async function() {
         let signedIn = await determineIfSignedIn();
         if (!signedIn) { return; }
-        await showDevicesForOwner();
+
     }
 
-    useFocusEffect(() => {
+    useFocusEffect(React.useCallback(() => {
+        showDevicesForOwner();
+        // return () => unsubscribe();
+    }, []));
+
+    useEffect(() => {
         initHomePage();
-    });
+    }, []);
 
     const getCurrentUserName = function() {
         if (currentUser) { return currentUser.user.givenName }
@@ -69,7 +79,8 @@ const HomeScreen = ({navigation}: any) => {
                     {devices?.map((device: Device, key: number) => (
                         <>
                             {/*TODO: Show devices*/}
-                            <Text>{device.name}</Text>
+                            <DeviceTile device={device}/>
+                            {/*<Text>{device.name}</Text>*/}
                         </>
                     ))}
                 </View>

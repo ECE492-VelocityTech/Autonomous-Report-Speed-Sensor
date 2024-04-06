@@ -4,7 +4,7 @@ import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
-import com.VelocityTech.CarssBackend.ViewModel.DeviceVM;
+import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ public class DeviceController {
     }
 
     @PostMapping("/create/{ownerId}")
-    public ResponseEntity<Device> createDevice(@PathVariable Long ownerId, @RequestBody DeviceVM deviceVM) {
+    public ResponseEntity<Device> createDevice(@PathVariable Long ownerId, @RequestBody NewDeviceReqVM deviceVM) {
         Device newDevice = deviceService.createNewDevice(deviceVM, ownerId);
         return new ResponseEntity<>(newDevice, HttpStatus.CREATED);
     }

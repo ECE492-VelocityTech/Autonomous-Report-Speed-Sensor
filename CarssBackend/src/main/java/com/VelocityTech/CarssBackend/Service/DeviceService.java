@@ -5,7 +5,7 @@ import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.Owner;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
-import com.VelocityTech.CarssBackend.ViewModel.DeviceVM;
+import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -54,7 +54,7 @@ public class DeviceService {
         return deviceRepository.save(device);
     }
 
-    public Device createNewDevice(DeviceVM deviceVM, Long ownerId) {
+    public Device createNewDevice(NewDeviceReqVM deviceVM, Long ownerId) {
         Owner owner = ownerRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("Owner not found with id: " + ownerId));
         Device device = deviceVM.toDevice(owner);

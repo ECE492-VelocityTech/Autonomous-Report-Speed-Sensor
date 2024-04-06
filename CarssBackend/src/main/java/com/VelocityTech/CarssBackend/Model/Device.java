@@ -3,6 +3,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -19,6 +20,7 @@ public class Device {
     private float speedLimit;
     private double lat;
     private double lng;
+    private Date lastPingTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
@@ -101,5 +103,13 @@ public class Device {
 
     public void setLng(double lng) {
         this.lng = lng;
+    }
+
+    public float getSpeedLimit() {
+        return speedLimit;
+    }
+
+    public void setSpeedLimit(float speedLimit) {
+        this.speedLimit = speedLimit;
     }
 }

@@ -1,11 +1,14 @@
-type Device = {
+export type Device = {
     name: string;
     address: string;
     speedLimit: number;
 };
 
-const toDevice = (name: string, address: string, speedLimit: number): Device => {
-    return {
-        name, address, speedLimit,
+export const DeviceUtil = {
+    toDevice: (name: string, address: string, speedLimit: number): Device => {
+        console.log("toDevice", name, address, speedLimit)
+        return {
+            name, address, speedLimit,
+        }
     }
 }

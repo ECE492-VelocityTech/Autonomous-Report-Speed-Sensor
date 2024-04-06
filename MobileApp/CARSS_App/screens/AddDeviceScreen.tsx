@@ -39,7 +39,7 @@ const AddDeviceScreen = ({navigation}: any) => {
     return <>
         {showInstructions() && <AddDeviceInstructions completeInstructionsHandler={completeInstructionsHandler}/> }
         {showDiscovery() && <DiscoverDevice completeDeviceConnection={completeDeviceConnection} showConfiguration={showConfiguration}
-                                            BluetoothUtil={BluetoothUtil} BleManager={BleManager} bleManagerEmitter={bleManagerEmitter}/> }
+                                            BluetoothUtil={BluetoothUtil} BleManager={BleManager} bleManagerEmitter={bleManagerEmitter} navigation={navigation}/> }
         {/*{showConfiguration() && <ConfigureDevice connectedDeviceBleId={connectedDeviceBleId} BluetoothUtil={BluetoothUtil} BleManager={BleManager}/> }*/}
     </>
 };

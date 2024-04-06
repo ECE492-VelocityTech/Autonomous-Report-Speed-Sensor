@@ -36,6 +36,13 @@ const StyleUtil = {
             backgroundColor: this.darkMode ?
                 constants.ThemeColor.DarkButtonBackground : constants.ThemeColor.LightButtonBackground
         };
+    },
+
+    getTileBackground: function() {
+        return {
+            backgroundColor: this.darkMode ?
+                constants.ThemeColor.DarkTileBackground : constants.ThemeColor.LightTileBackground
+        }
     }
 };
 

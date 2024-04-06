@@ -98,6 +98,25 @@ const compStyles = StyleSheet.create({
         borderBottomWidth: 1,
         // borderBottomColor: '#ccc',
     },
+
+    deviceTileBox: {
+        borderRadius: 8,
+        padding: 16,
+        marginBottom: 16,
+        // elevation: 3, // for Android shadow
+        // shadowColor: '#000', // for iOS shadow
+        // shadowOffset: { width: 0, height: 1 }, // for iOS shadow
+        shadowOpacity: 0.8, // for iOS shadow
+        shadowRadius: 2, // for iOS shadow
+    },
+    deviceTileName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    deviceTileStatus: {
+        fontSize: 16,
+    },
 });
 
 export default compStyles;
