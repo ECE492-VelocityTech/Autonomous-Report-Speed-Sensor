@@ -1,21 +1,44 @@
 #define PIN_NUMBER 4
 #define AVERAGE 4
-#define MINIMUM_SPEED 15
-#define MAXIMUM_SPEED 150
+#define MINIMUM_SPEED 10.0
+#define MAXIMUM_SPEED 150.0
 
 unsigned int doppler_div = 44;
 unsigned int samples[AVERAGE];
 unsigned int x;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   pinMode(PIN_NUMBER, INPUT);
+
+  while (true) {
+    while (Serial.available() == 0) {
+      delay(100); // Wait for input
+    }
+    
+    String input = Serial.readStringUntil('\n');
+//    Serial.println("Input received: ");
+//    Serial.println(input);
+    
+    // Check if input contains the specified string
+    if (input.startsWith("Ready to receive speed data")) {
+      break; // Exit the loop if the correct input is received
+    } else {
+      Serial.println("Wrong");
+    }
+  }
+
+  // while(true){
+  //   Serial.println("hi");
+  // }
 }
 
-void loop() {
+void loop() {  
+  // Proceed with the rest of the code
   noInterrupts();
   pulseIn(PIN_NUMBER, HIGH);
   unsigned int pulse_length = 0;
+  
   for (x = 0; x < AVERAGE; x++)
   {
     pulse_length = pulseIn(PIN_NUMBER, HIGH); 
@@ -30,7 +53,8 @@ void loop() {
   for (x = 1; x < AVERAGE; x++)
   {
     nbPulsesTime += samples[x];
-    if ((samples[x] > samples[0] * 2) || (samples[x] < samples[0] / 2))
+    // Check if the sample is within Â±20% of the first sample
+    if (samples[x] > samples[0] * 1.2 || samples[x] < samples[0] * 0.8)
     {
       samples_ok = false;
     }
@@ -40,16 +64,17 @@ void loop() {
   {
     unsigned int Ttime = nbPulsesTime / AVERAGE;
     unsigned int Freq = 1000000 / Ttime;
+    float speed = Freq / doppler_div;
     
-    //Serial.print(Ttime);
-    Serial.print("\r\n");
-    Serial.print(Freq);
-    Serial.print("Hz : ");
-    Serial.print(Freq/doppler_div);
-    Serial.print("km/h\r\n");
+    // Check if speed meets minimum threshold and send it to the server
+    if (speed >= MINIMUM_SPEED && speed <= MAXIMUM_SPEED) {
+      sendDataToServer(speed);
+    }
   }
-  else
-  {
+}
 
-  }
+void sendDataToServer(float speed) {
+  // Send speed data to server
+  Serial.print(speed);
+  Serial.print("\r\n");
 }
