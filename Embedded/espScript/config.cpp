@@ -30,13 +30,6 @@ bool loadConfiguration(Configuration& config) {
 void sendConfigToWifiEsp(const Configuration& config) {
     String input;
     Serial.println("Sync ESPS");
-    // while (Serial2.available() == 0) {
-    //   delay(1000); // Wait for input
-    //   Serial.println("Waiting");
-    // }
-    // input = Serial2.readStringUntil('\n');
-    // Serial.println(input);
-    // Serial2.println("Hello");
 
     while (true) {
         while (Serial2.available() == 0) {
@@ -51,7 +44,7 @@ void sendConfigToWifiEsp(const Configuration& config) {
     Serial.println("Received INIT");
     // send Wifi Cred
     // input = String(config.wifiName) + "\n" + String(config.wifiPassword) + "\n" + String(config.deviceId) + "\n";
-    input = "iPhone (8)\ninioluwa\n17";
+    input = "Mehar iPhone\n123456789\n17";
     // input += String(config.deviceId);
     Serial.println("Sent to ESPWIFI: " + input); // TODO Remove
     Serial2.println(input);
@@ -64,5 +57,5 @@ void sendConfigToWifiEsp(const Configuration& config) {
             break; // Exit the loop if the correct input is received
         }
     }
-    Serial.println("Sent to ESPWIFI: " + input); // TODO Remove
+    Serial.println("Received " + input); // TODO Remove
 }

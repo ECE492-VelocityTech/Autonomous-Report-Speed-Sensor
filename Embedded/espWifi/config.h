@@ -10,7 +10,7 @@ struct Configuration {
   String wifiName;
   String wifiPassword;
   String address;
-  String deviceId;
+  long deviceId;
 };
 
 void saveConfiguration(const Configuration& config);

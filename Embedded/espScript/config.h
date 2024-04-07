@@ -17,4 +17,8 @@ bool loadConfiguration(Configuration& config);
 
 void sendConfigToWifiEsp(const Configuration& config);
 
+// String readFromESPWifi() {
+
+// }
+
 #endif // CONFIG_H

@@ -89,7 +89,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
 };
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
     // Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
     Serial2.begin(9600);
     pinMode(LED_PIN, OUTPUT);

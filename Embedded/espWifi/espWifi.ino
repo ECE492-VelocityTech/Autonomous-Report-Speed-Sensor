@@ -17,6 +17,7 @@
 #include <TimeLib.h>
 
 #include "config.h"
+#include "wifiUtil.h"
 
 //#define REQUEST_ADD_OWNER 1
 //#define REQUEST_ADD_DEVICE_TO_OWNER 2
@@ -24,13 +25,17 @@
 #define REQUEST_GET_TRAFFIC 2
 
 
-String ssid     =  "iPhone (8)";
-String password =  "inioluwa";
+// String ssid     =  "iPhone (8)";
+String ssid     =  "Mehar iPhone";
+// String password =  "inioluwa";
+String password =  "123456789";
 String deviceId = "11";
 String trafficDataEndpoint = "http://carss.chickenkiller.com/api/v1/trafficData"; 
 String ownerEndpoint = "http://carss.chickenkiller.com/api/v1/owners";
 String devicesEndpoint = "http://carss.chickenkiller.com/api/v1/devices";
 String timeEndpoint = "http://carss.chickenkiller.com/api/v1/devices/time";
+String hearbeatEndpoint = "http://carss.chickenkiller.com/api/v1/devices/hearbeat";
+
 float speeds[10]; // Array to store speeds
 String timestamps[10];
 const char* ntpServer = "pool.ntp.org";
@@ -45,6 +50,8 @@ const int   daylightOffset_sec = 3600; // Daylight offset in seconds
 
 WiFiUDP udp;
 NTPClient timeClient(udp, ntpServer, gmtOffset_sec, daylightOffset_sec);
+
+WifiUtil wifiUtil;
 
 
 int btnGPIO = 0;
@@ -63,7 +70,10 @@ void setup() {
   // if (!foundConfig) {  } 
 //  getWifiCredentials();
 //  getDeviceId();
+  // config.wifiName = ssid;
+  // config.wifiPassword = password;
   connectToWifi();
+  wifiUtil.sendHearbeat(config);
   timeClient.begin();
   timeClient.update();
   updateTime();

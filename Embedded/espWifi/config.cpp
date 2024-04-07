@@ -43,7 +43,7 @@ void receiveConfigFromBleEsp(Configuration& config) {
     // deviceId
     input = Serial.readStringUntil('\n');
     Serial.println(input);
-    config.deviceId = input;
+    config.deviceId = input.toInt();
 
     Serial.println("ACK");
 

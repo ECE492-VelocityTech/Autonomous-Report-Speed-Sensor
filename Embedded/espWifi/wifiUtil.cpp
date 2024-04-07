@@ -26,3 +26,121 @@ void WifiUtil::connect(const Configuration& config) {
     Serial.print("Connected to Wi-Fi: ");
     Serial.println(connected.c_str());
 }
+
+void WifiUtil::connectToWifi(const Configuration& config) {
+  // Connect to WiFi
+  Serial.print("[WiFi] Connecting to ");
+  Serial.println(config.wifiName);
+  Serial.println(config.wifiPassword);
+  Serial.println(config.deviceId);
+
+  int tryDelay = 600;
+  int numberOfTries = 50;
+
+  while (true) {
+    WiFi.begin(config.wifiName.c_str(), config.wifiPassword.c_str());
+
+    // Retry connection until successful or maximum tries reached
+    while (WiFi.status() != WL_CONNECTED && numberOfTries > 0) {
+      Serial.print(".");
+      delay(tryDelay);
+      numberOfTries--;
+
+      if (WiFi.status() == WL_CONNECTED) {
+        break;  // Exit the loop if connected during retry
+      }
+
+      if (numberOfTries <= 0) {
+        Serial.println("[WiFi] Failed to connect to WiFi!");
+//        return;
+      }
+    }
+
+    // Check if connected and obtain IP address
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.println();
+      Serial.println("[WiFi] WiFi is connected!");
+      Serial.print("[WiFi] IP address: ");
+      Serial.println(WiFi.localIP());
+
+      // Check if local IP is valid
+      if (WiFi.localIP() == IPAddress(0, 0, 0, 0)) {
+        Serial.println("[WiFi] WiFi connected, but local IP is 0.0.0.0. Retrying...");
+        numberOfTries = 50; // Reset the number of tries
+      } else {
+        return; // Exit the function if connection is successful
+      }
+    }
+
+    // Check WiFi status and handle different cases
+    switch (WiFi.status()) {
+      case WL_NO_SSID_AVAIL:
+        Serial.println("[WiFi] SSID not found");
+        break;
+      case WL_CONNECT_FAILED:
+        Serial.print("[WiFi] Failed - WiFi not connected! Reason: ");
+        break;
+      case WL_CONNECTION_LOST:
+        Serial.println("[WiFi] Connection was lost");
+        break;
+      case WL_SCAN_COMPLETED:
+        Serial.println("[WiFi] Scan is completed");
+        break;
+      case WL_DISCONNECTED:
+        Serial.println("[WiFi] WiFi is disconnected");
+        break;
+      default:
+        Serial.print("[WiFi] WiFi Status: ");
+        Serial.println(WiFi.status());
+        break;
+    }
+
+    delay(tryDelay);
+  }
+}
+
+
+void WifiUtil::sendHearbeat(const Configuration& config) {
+    while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0,0,0,0)){
+        Serial.println("Connecting to WIFI");
+        connectToWifi(config);
+    }
+
+    HTTPClient http;
+    http.setTimeout(10000);
+
+    // Start the HTTP request
+    String hearbeatEndpoint = "http://carss.chickenkiller.com/api/v1/devices/heartbeat/";
+    hearbeatEndpoint.concat(config.deviceId);
+    Serial.print("Sending hearbeat to ");
+    Serial.println(hearbeatEndpoint);
+    http.begin(hearbeatEndpoint);
+
+    // Send the GET request
+    int httpResponseCode = http.GET();
+
+    // Check for a successful response
+    if (httpResponseCode > 0) {
+        Serial.print("HTTP Response Code hearbeat: ");
+        Serial.println(httpResponseCode);
+
+        Serial.print("HTTP Response hearbeat: ");
+        Serial.println(http.getString());
+
+        // // Parse JSON
+        // DynamicJsonDocument doc(2048);  // Adjust the size based on your expected JSON response size
+        // deserializeJson(doc, http.getString());
+
+        // // Print JSON data
+        // Serial.println("JSON Response:");
+        // serializeJsonPretty(doc, Serial);
+    } else {
+        Serial.print("HTTP Request failed, error: ");
+        Serial.print(httpResponseCode);
+        Serial.print(" - ");
+        Serial.println(http.errorToString(httpResponseCode));
+    }
+
+    // Close the connection
+    http.end();
+}
