@@ -19,6 +19,7 @@ import okhttp3.Response;
 import org.json.JSONObject;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -138,5 +139,12 @@ public class DeviceService {
             System.out.println("Error fetching coordinates from Google API");
         }
         return coordinates;
+    }
+
+    public void heartbeat(long deviceId) {
+        Device device = deviceRepository.findById(deviceId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Device not found with id " + deviceId));
+        device.setLastPingTime(LocalDateTime.now());
+        deviceRepository.save(device);
     }
 }

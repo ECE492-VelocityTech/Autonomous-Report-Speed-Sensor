@@ -105,4 +105,10 @@ public class DeviceController {
         LocalDateTime date = LocalDateTime.now();
         return new ResponseEntity<>(date.format(TimeSyncFormatter), HttpStatus.OK);
     }
+
+    @GetMapping("/heartbeat/{deviceId}")
+    public ResponseEntity<String> heartbeat(@PathVariable long deviceId) {
+        deviceService.heartbeat(deviceId);
+        return new ResponseEntity<>("Done", HttpStatus.OK);
+    }
 }
