@@ -54,7 +54,7 @@ NTPClient timeClient(udp, ntpServer, gmtOffset_sec, daylightOffset_sec);
 WifiUtil wifiUtil;
 
 
-int btnGPIO = 0;
+const int btnGPIO = 0;
 int btnState = false;
 
 Configuration config;
@@ -63,15 +63,19 @@ void setup() {
   Serial.begin(115200);
   Serial2.begin(9600);
   
+  pinMode(btnGPIO, INPUT_PULLUP);
+  
   delay(5000);
 
   bool foundConfig = loadConfiguration(config);
-  receiveConfigFromBleEsp(config);
+  // receiveConfigFromBleEsp(config);
+  
   // if (!foundConfig) {  } 
 //  getWifiCredentials();
 //  getDeviceId();
   // config.wifiName = ssid;
   // config.wifiPassword = password;
+
   connectToWifi();
   wifiUtil.sendHearbeat(config);
   timeClient.begin();
@@ -87,6 +91,7 @@ void setup() {
   Serial.println("TIME:");
   Serial.println(timeClient.getFormattedTime());
   Serial2.println("Ready to receive speed data");
+
   handleRequests();
 }
 
@@ -215,6 +220,7 @@ void handleRequests() {
     String input;
     while (Serial2.available() == 0) {
       delay(100); // Wait for input
+      isResetRequested(btnGPIO);
     }
     input = Serial2.readStringUntil('\n');
     

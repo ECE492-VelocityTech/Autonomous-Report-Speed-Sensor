@@ -18,4 +18,6 @@ bool loadConfiguration(Configuration& config);
 
 void receiveConfigFromBleEsp(Configuration& config);
 
+bool isResetRequested(const int& buttonPin);
+
 #endif // CONFIG_H

@@ -143,5 +143,5 @@ String WifiUtil::makeGetRequest(String& endpoint, const Configuration& config) {
 void WifiUtil::sendHearbeat(const Configuration& config) {
     String hearbeatEndpoint = HearbeatEndpoint;
     hearbeatEndpoint.concat(config.deviceId);
-    makeGetRequest(hearbeatEndpoint, config);
+    String heartbeatResult = makeGetRequest(hearbeatEndpoint, config);
 }

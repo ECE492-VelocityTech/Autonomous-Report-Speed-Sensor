@@ -49,3 +49,35 @@ void receiveConfigFromBleEsp(Configuration& config) {
 
     saveConfiguration(config);
 }
+
+bool isResetRequested(const int& buttonPin) {
+    unsigned long buttonPressStartTime = 0;
+    int buttonState;
+    while (true) {
+        buttonState = digitalRead(buttonPin);
+
+        if (buttonState == LOW) {
+            // Button is pressed
+            if (buttonPressStartTime == 0) {
+                // Start measuring time if it's the first time the button is pressed
+                buttonPressStartTime = millis();
+            }
+        } else {
+            // Button is released
+            buttonPressStartTime = 0; // Reset the start time
+            return false;
+        }
+
+        if (buttonPressStartTime != 0 && millis() - buttonPressStartTime >= 10000) {
+            // Button has been pressed for 10 seconds
+            buttonPressStartTime = 0;
+            Serial.println("Reset Requested");
+            return true;
+        }
+
+        delay(1000); // Add a small delay to debounce the button (optional)
+        Serial.println("Button Pressed");
+    }
+
+    Serial.println("Reset Requested");
+}
