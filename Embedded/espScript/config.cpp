@@ -43,8 +43,9 @@ void sendConfigToWifiEsp(const Configuration& config) {
     }
     Serial.println("Received INIT");
     // send Wifi Cred
-    // input = String(config.wifiName) + "\n" + String(config.wifiPassword) + "\n" + String(config.deviceId) + "\n";
-    input = "Mehar iPhone\n123456789\n17";
+    input = config.wifiName + "\n" + config.wifiPassword + "\n";
+    input.concat(config.deviceId);
+    // input = "Mehar iPhone\n123456789\n17";
     // input += String(config.deviceId);
     Serial.println("Sent to ESPWIFI: " + input); // TODO Remove
     Serial2.println(input);
@@ -58,4 +59,9 @@ void sendConfigToWifiEsp(const Configuration& config) {
         }
     }
     Serial.println("Received " + input); // TODO Remove
+}
+
+void resetDevice() {
+    EEPROM.put(0, 0); // Reset Marker Value
+    esp_restart();
 }

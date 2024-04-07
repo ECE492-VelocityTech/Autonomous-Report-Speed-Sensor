@@ -83,6 +83,8 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
       Serial.println(deviceId);
       config.deviceName = String(deviceName);
       config.wifiName = String(wifiName);
+      config.wifiPassword = String(wifiPassword);
+      config.deviceId = deviceId;
       saveConfiguration(config);
       sendConfigToWifiEsp(config);
     }
@@ -91,11 +93,11 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks {
 void setup() {
     Serial.begin(115200);
     // Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
-    Serial2.begin(9600);
+    Serial2.begin(115200);
     pinMode(LED_PIN, OUTPUT);
     initBle();
     loadConfiguration(config);
-    sendConfigToWifiEsp(config);
+    // sendConfigToWifiEsp(config);
 }
 
 void initBle() {

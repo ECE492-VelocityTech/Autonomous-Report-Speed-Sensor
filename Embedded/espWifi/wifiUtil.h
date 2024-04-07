@@ -11,9 +11,13 @@ const int MAX_WIFI_ATTEMPTS = 10;
 
 class WifiUtil {
 public:
+    static const String HearbeatEndpoint;
+
     void connectToWifi(const Configuration& config);
 
     void connect(const Configuration& config);
+
+    String makeGetRequest(String& endpoint, const Configuration& config);
 
     void sendHearbeat(const Configuration& config);
 };

@@ -1,5 +1,7 @@
 #include "wifiUtil.h"
 
+const String WifiUtil::HearbeatEndpoint = "http://carss.chickenkiller.com/api/v1/devices/heartbeat/";
+
 void WifiUtil::connect(const Configuration& config) {
     Serial.print("Connecting to Wi-Fi...");
     
@@ -99,41 +101,32 @@ void WifiUtil::connectToWifi(const Configuration& config) {
   }
 }
 
-
-void WifiUtil::sendHearbeat(const Configuration& config) {
+String WifiUtil::makeGetRequest(String& endpoint, const Configuration& config) {
     while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0,0,0,0)){
         Serial.println("Connecting to WIFI");
         connectToWifi(config);
     }
 
+    String resp = "";
     HTTPClient http;
     http.setTimeout(10000);
 
     // Start the HTTP request
-    String hearbeatEndpoint = "http://carss.chickenkiller.com/api/v1/devices/heartbeat/";
-    hearbeatEndpoint.concat(config.deviceId);
-    Serial.print("Sending hearbeat to ");
-    Serial.println(hearbeatEndpoint);
-    http.begin(hearbeatEndpoint);
+    Serial.print("Making Get Request: ");
+    Serial.println(endpoint);
+    http.begin(endpoint);
 
     // Send the GET request
     int httpResponseCode = http.GET();
 
     // Check for a successful response
     if (httpResponseCode > 0) {
-        Serial.print("HTTP Response Code hearbeat: ");
+        Serial.print("HTTP Response Code: ");
         Serial.println(httpResponseCode);
 
-        Serial.print("HTTP Response hearbeat: ");
+        Serial.print("HTTP Response: ");
         Serial.println(http.getString());
-
-        // // Parse JSON
-        // DynamicJsonDocument doc(2048);  // Adjust the size based on your expected JSON response size
-        // deserializeJson(doc, http.getString());
-
-        // // Print JSON data
-        // Serial.println("JSON Response:");
-        // serializeJsonPretty(doc, Serial);
+        resp = http.getString();
     } else {
         Serial.print("HTTP Request failed, error: ");
         Serial.print(httpResponseCode);
@@ -143,4 +136,12 @@ void WifiUtil::sendHearbeat(const Configuration& config) {
 
     // Close the connection
     http.end();
+    return resp;
+}
+
+
+void WifiUtil::sendHearbeat(const Configuration& config) {
+    String hearbeatEndpoint = HearbeatEndpoint;
+    hearbeatEndpoint.concat(config.deviceId);
+    makeGetRequest(hearbeatEndpoint, config);
 }

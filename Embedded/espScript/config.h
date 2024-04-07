@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <Arduino.h>
+#include <esp_system.h>
 
 const uint32_t CONFIG_MARKER = 0xABCDDCDA;
 
@@ -16,6 +17,9 @@ void saveConfiguration(const Configuration& config);
 bool loadConfiguration(Configuration& config);
 
 void sendConfigToWifiEsp(const Configuration& config);
+
+void resetDevice();
+void listenToWifiEsp();
 
 // String readFromESPWifi() {
 
