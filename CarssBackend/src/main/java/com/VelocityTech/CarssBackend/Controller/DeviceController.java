@@ -1,6 +1,7 @@
 package com.VelocityTech.CarssBackend.Controller;
 
 import com.VelocityTech.CarssBackend.Model.Device;
+import com.VelocityTech.CarssBackend.Model.DeviceMode;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
@@ -108,7 +109,7 @@ public class DeviceController {
 
     @GetMapping("/heartbeat/{deviceId}")
     public ResponseEntity<String> heartbeat(@PathVariable long deviceId) {
-        deviceService.heartbeat(deviceId);
-        return new ResponseEntity<>("Done", HttpStatus.OK);
+        DeviceMode deviceMode = deviceService.heartbeat(deviceId);
+        return new ResponseEntity<>(deviceMode.name(), HttpStatus.OK);
     }
 }

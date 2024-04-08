@@ -108,7 +108,7 @@ void setup()
     Serial.begin(115200);
     Serial2.begin(115200);
 
-    clearConfig(); // TODO Remove Debug
+    // clearConfig(); // TODO Remove Debug
 
     initPins();
 

@@ -2,6 +2,7 @@ package com.VelocityTech.CarssBackend.Service;
 
 import com.VelocityTech.CarssBackend.Model.Coordinates;
 import com.VelocityTech.CarssBackend.Model.Device;
+import com.VelocityTech.CarssBackend.Model.DeviceMode;
 import com.VelocityTech.CarssBackend.Model.Owner;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
@@ -141,10 +142,11 @@ public class DeviceService {
         return coordinates;
     }
 
-    public void heartbeat(long deviceId) {
+    public DeviceMode heartbeat(long deviceId) {
         Device device = deviceRepository.findById(deviceId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Device not found with id " + deviceId));
         device.setLastPingTime(LocalDateTime.now());
         deviceRepository.save(device);
+        return device.getDeviceMode();
     }
 }

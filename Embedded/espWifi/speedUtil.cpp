@@ -1,6 +1,6 @@
 #include "speedUtil.h"
 
-void getSpeedData(NTPClient& timeClient, String& currYear, String& currMonth, String& currDay)
+void getSpeedData(NTPClient& timeClient, WifiUtil& wifiUtil, const Configuration& config, String& currYear, String& currMonth, String& currDay)
 {
     // Read input from serial with timeout
     String input;
@@ -28,6 +28,7 @@ void getSpeedData(NTPClient& timeClient, String& currYear, String& currMonth, St
         if (speedIndex == 10)
         {
             Serial.println("**Sending Speed Data**");
+            PostSpeedData(wifiUtil, config);
             // addTrafficData(); // Call function to add traffic data
             speedIndex = 0;   // Reset speed index
         }
@@ -36,6 +37,17 @@ void getSpeedData(NTPClient& timeClient, String& currYear, String& currMonth, St
     {
         Serial.println("Invalid input: " + input); // Print error message for invalid input
     }
+}
+
+void PostSpeedData(WifiUtil& wifiUtil, const Configuration& config)
+{
+  for (int i = 0; i < 10; i++)
+  {
+    // Read speed and timestamp from arrays
+    float speed = speeds[i];
+    String timestamp = timestamps[i];
+    wifiUtil.sendSpeedDataIndividual(speed, timestamp, config);
+  }
 }
 
 String getTimestamp(NTPClient& timeClient, String& currYear, String& currMonth, String& currDay) {

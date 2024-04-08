@@ -1,6 +1,9 @@
 #include "wifiUtil.h"
 
 const String WifiUtil::HearbeatEndpoint = "http://carss.chickenkiller.com/api/v1/devices/heartbeat/";
+const String WifiUtil::TrafficDataIndividualEndpoint = "http://carss.chickenkiller.com/api/v1/trafficData/device/";
+
+
 
 void WifiUtil::connect(const Configuration &config)
 {
@@ -158,10 +161,84 @@ String WifiUtil::makeGetRequest(String &endpoint, const Configuration &config)
     return resp;
 }
 
+void WifiUtil::makeHttpPostRequest(const String &endpoint, const String &jsonStr, const Configuration &config)
+{
+    while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0, 0, 0, 0))
+    {
+        Serial.println("Connecting to WIFI");
+        connectToWifi(config);
+    }
+
+    if (jsonStr.length() == 0)
+    {
+        Serial.println("[HTTP] JSON string is empty or null");
+        return;
+    }
+
+    HTTPClient http;
+    http.setTimeout(10000);
+
+    // Start the HTTP request
+    http.begin(endpoint);
+
+    // Set content type header
+    http.addHeader("Content-Type", "application/json");
+
+    // Send the POST request with JSON body
+    int httpResponseCode = http.POST(jsonStr);
+
+    // Check for a successful response
+    if (httpResponseCode > 0)
+    {
+        Serial.print("HTTP Response Code: ");
+        Serial.println(httpResponseCode);
+
+        // Parse JSON response (if any)
+        DynamicJsonDocument doc(2048); // Adjust the size based on expected response size
+        deserializeJson(doc, http.getString());
+
+        // Print JSON data
+        Serial.println("JSON Response:");
+        serializeJsonPretty(doc, Serial);
+    }
+    else
+    {
+        Serial.print("HTTP Request failed, error: ");
+        Serial.print(httpResponseCode);
+        Serial.print(" - ");
+        Serial.println(http.errorToString(httpResponseCode));
+    }
+
+    // Close the connection
+    http.end();
+}
+
 void WifiUtil::sendHearbeat(const Configuration &config)
 {
     Serial.println("**Sending Hearbeat**");
     String hearbeatEndpoint = HearbeatEndpoint;
     hearbeatEndpoint.concat(config.deviceId);
     String heartbeatResult = makeGetRequest(hearbeatEndpoint, config);
+}
+
+void WifiUtil::sendSpeedDataIndividual(float& speed, String& timestamp, const Configuration &config)
+{
+    // Create JSON object
+    StaticJsonDocument<128> doc;
+    doc["speed"] = speed;
+    doc["timestamp"] = timestamp;
+
+    // Serialize JSON object to string
+    String jsonStr;
+    serializeJson(doc, jsonStr);
+
+    // Print JSON string
+    Serial.println(jsonStr); // TODO Remove
+
+    // Make HTTP POST request
+    Serial.println("**Sending Traffic Data**");
+    String trafficDataEndpoint = TrafficDataIndividualEndpoint;
+    trafficDataEndpoint.concat(config.deviceId);
+    Serial.println("Endpoint: " + trafficDataEndpoint);
+    makeHttpPostRequest(trafficDataEndpoint, jsonStr, config);
 }

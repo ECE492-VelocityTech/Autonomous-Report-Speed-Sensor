@@ -65,7 +65,7 @@ void setup()
   Serial.begin(115200);
   Serial2.begin(9600);
 
-  clearConfig(); // TODO Remove Debug
+  // clearConfig(); // TODO Remove Debug
 
   delay(5000); // To give time for other system to start
 
@@ -80,7 +80,7 @@ void loop()
   if(Serial2.available() > 0)
   {
     // Speed Data avilable
-    getSpeedData(timeClient, currYear, currMonth, currDay);
+    getSpeedData(timeClient, wifiUtil, config, currYear, currMonth, currDay);
   }
   bool resetRequested = isResetRequested(btnGPIO);
   if (resetRequested) { resetDevice(); } // Reset Device if reset requested;
@@ -289,31 +289,7 @@ void connectToWifi()
 // }
 
 
-void addTrafficData()
-{
-  for (int i = 0; i < 10; i++)
-  {
-    // Read speed and timestamp from arrays
-    float speed = speeds[i];
-    String timestamp = timestamps[i];
 
-    // Create JSON object
-    StaticJsonDocument<128> doc;
-    doc["speed"] = speed;
-    doc["timestamp"] = timestamp;
-
-    // Serialize JSON object to string
-    String jsonStr;
-    serializeJson(doc, jsonStr);
-
-    // Print JSON string
-    Serial.println(jsonStr);
-
-    // Make HTTP POST request
-    Serial.println("Endpoint: " + trafficDataEndpoint + "/device/" + config.deviceId);
-    makeHttpPostRequest(trafficDataEndpoint + "/device/" + deviceId, jsonStr);
-  }
-}
 
 void makeHttpPostRequest(const String &endpoint, const String &jsonStr)
 {

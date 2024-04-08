@@ -59,11 +59,8 @@ const HomeScreen = ({navigation}: any) => {
 
     useFocusEffect(React.useCallback(() => {
         showDevicesForOwner();
-    }, []));
-
-    useEffect(() => {
         initHomePage();
-    }, []);
+    }, []));
 
     const getCurrentUserName = function() {
         if (currentUser) { return currentUser.user.givenName }

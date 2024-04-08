@@ -11,8 +11,8 @@ const ConfigureDevice = ({showDiscovery, connectedDeviceBleId, BluetoothUtil, Bl
     const [value, setValue] = useState("");
     const [error, setError] = useState(null);
     const [deviceName, setDeviceName] = useState('');
-    const [wifiName, setWifiName] = useState('');
-    const [wifiPassword, setWifiPassword] = useState('');
+    const [wifiName, setWifiName] = useState('Mehar iPhone');
+    const [wifiPassword, setWifiPassword] = useState('123456789');
     const [address, setAddress] = useState('');
     const [speedLimit, setSpeedLimit] = useState('');
 
