@@ -4,14 +4,16 @@ import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.TrafficDataRepository;
+import com.VelocityTech.CarssBackend.ViewModel.TrafficDataReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TrafficDataService {
@@ -31,6 +33,15 @@ public class TrafficDataService {
                 .orElseThrow(() -> new RuntimeException("Device not found with id: " + deviceId));
         trafficData.setDevice(device);
         return trafficDataRepository.save(trafficData);
+    }
+
+    public Device createTrafficDataBatch(List<TrafficDataReqVM> trafficDataList, Long deviceId) {
+        Device device = deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Device not found with id: " + deviceId));
+        List<TrafficData> trafficData = trafficDataList.stream().map(trafficDataReqVM -> trafficDataReqVM.toTrafficData(device))
+                .toList();
+        trafficDataRepository.saveAll(trafficData);
+        return device;
     }
 
     @Transactional(readOnly = true)

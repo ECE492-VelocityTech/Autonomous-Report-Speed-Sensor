@@ -13,4 +13,6 @@ public class Constants {
             .toLocalDateTime();
 
     public static DateTimeFormatter TimeSyncFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    public static DateTimeFormatter TrafficDataTimestampFormat = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 }
