@@ -27,7 +27,7 @@ bool loadConfiguration(Configuration& config) {
 }
 
 void receiveConfigFromBleEsp(Configuration& config) {
-    // Tell ESPBle to send Ble
+    // Tell ESP_B to send config
     Serial.println("Ready to receive data");
     while (Serial.available() == 0) {
         delay(100); // Wait for input
@@ -50,6 +50,14 @@ void receiveConfigFromBleEsp(Configuration& config) {
     saveConfiguration(config);
 }
 
+void sendWifiStatusToBleEsp(bool connectionSuccess) {
+    if (connectionSuccess) {
+        Serial.println("WiFi Connected");
+    } else {
+        Serial.println("WiFi Not Connected");
+    }
+}
+
 bool isResetRequested(const int& buttonPin) {
     unsigned long buttonPressStartTime = 0;
     int buttonState;
@@ -68,8 +76,8 @@ bool isResetRequested(const int& buttonPin) {
             return false;
         }
 
-        if (buttonPressStartTime != 0 && millis() - buttonPressStartTime >= 10000) {
-            // Button has been pressed for 10 seconds
+        if (buttonPressStartTime != 0 && millis() - buttonPressStartTime >= RESET_THRESHOLD) {
+            // Button has been pressed for Reset threshold (10s for eg)
             buttonPressStartTime = 0;
             Serial.println("Reset Requested");
             return true;
@@ -78,6 +86,15 @@ bool isResetRequested(const int& buttonPin) {
         delay(1000); // Add a small delay to debounce the button (optional)
         Serial.println("Button Pressed");
     }
+}
 
-    Serial.println("Reset Requested");
+void clearConfig() {
+    EEPROM.begin(sizeof(CONFIG_MARKER));
+    EEPROM.put(0, 0); // Reset Marker Value
+    EEPROM.end();
+}
+
+void resetDevice() {
+    EEPROM.put(0, 0); // Reset Marker Value
+    esp_restart();
 }

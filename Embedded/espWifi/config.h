@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 const uint32_t CONFIG_MARKER = 0xABCDDCDA;
+const int RESET_THRESHOLD = 10000;
 
 struct Configuration {
   String deviceName;
@@ -18,6 +19,12 @@ bool loadConfiguration(Configuration& config);
 
 void receiveConfigFromBleEsp(Configuration& config);
 
+void sendWifiStatusToBleEsp(bool connectionSuccess);
+
 bool isResetRequested(const int& buttonPin);
+
+void clearConfig();
+
+void resetDevice();
 
 #endif // CONFIG_H

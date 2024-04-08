@@ -13,7 +13,7 @@ class WifiUtil {
 public:
     static const String HearbeatEndpoint;
 
-    void connectToWifi(const Configuration& config);
+    bool connectToWifi(const Configuration& config);
 
     void connect(const Configuration& config);
 

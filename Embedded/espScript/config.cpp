@@ -28,40 +28,61 @@ bool loadConfiguration(Configuration& config) {
 }
 
 void sendConfigToWifiEsp(const Configuration& config) {
-    String input;
-    Serial.println("Sync ESPS");
+    String buff;
+    Serial.println("SendConfigToWifiEsp");
 
-    while (true) {
-        while (Serial2.available() == 0) {
-            delay(1000); // Wait for input
-            Serial.println("Waiting");
-        }
-        input = Serial2.readStringUntil('\n');
-        if (input.startsWith("Ready to receive data")) {
-            break; // Exit the loop if the correct input is received
-        }
-    }
+    waitForSerial2ToReceive("Ready to receive data", buff);
     Serial.println("Received INIT");
     // send Wifi Cred
-    input = config.wifiName + "\n" + config.wifiPassword + "\n";
-    input.concat(config.deviceId);
+    buff = config.wifiName + "\n" + config.wifiPassword + "\n";
+    buff.concat(config.deviceId);
     // input = "Mehar iPhone\n123456789\n17";
     // input += String(config.deviceId);
-    Serial.println("Sent to ESPWIFI: " + input); // TODO Remove
-    Serial2.println(input);
+    Serial.println("Sent to ESPWIFI: " + buff); // TODO Remove
+    Serial2.println(buff);
+
+    waitForSerial2ToReceive("ACK", buff);
+    Serial.println("Received " + buff); // TODO Remove
+
+    saveConfiguration(config);
+}
+
+void waitForSerial2ToReceive(const char* pattern, String& returnInput) {
     while (true) {
         while (Serial2.available() == 0) {
             delay(100); // Wait for input
         }
-        input = Serial2.readStringUntil('\n');
-        if (input.startsWith("ACK")) {
+        returnInput = Serial2.readStringUntil('\n');
+        if (returnInput.startsWith(pattern)) {
             break; // Exit the loop if the correct input is received
         }
     }
-    Serial.println("Received " + input); // TODO Remove
 }
 
 void resetDevice() {
     EEPROM.put(0, 0); // Reset Marker Value
     esp_restart();
+}
+
+void clearConfig() {
+  EEPROM.begin(sizeof(CONFIG_MARKER)); // Reserve space for configuration, flag, and marker
+  EEPROM.put(0, 0); // Reset Marker Value
+  EEPROM.end();
+}
+
+void changeOperationModeStandby() {
+    waitingTime = 5000;
+}
+
+void changeOperationModeActive() {
+    waitingTime = 1000;
+}
+
+bool receiveWifiStatusFromWifiEsp() {
+    String buff;
+    waitForSerial2ToReceive("WiFi", buff);
+    if (buff.startsWith("WiFi Connected")) {
+        return true;
+    } 
+    return false;
 }
