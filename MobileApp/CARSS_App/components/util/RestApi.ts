@@ -1,6 +1,6 @@
 import { DeviceReq, UpdateDeviceReq } from "../model/DeviceReq.ts";
 
-const serverURL = "http://129.128.215.79/api/v1"; // TODO: Fill in the server URL
+const serverURL = "http://129.128.215.79/backend/api/v1"; // TODO: Fill in the server URL
 
 const RestApi = {
     /**

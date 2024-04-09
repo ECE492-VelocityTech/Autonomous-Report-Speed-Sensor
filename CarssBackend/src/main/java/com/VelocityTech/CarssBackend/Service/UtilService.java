@@ -13,4 +13,8 @@ public class UtilService {
         }
         return DeviceStatus.Reachable;
     }
+
+    public static boolean isTrafficDataRecent(LocalDateTime dataTime) {
+        return Duration.between(dataTime, LocalDateTime.now()).compareTo(Constants.RecentTrafficDataTime) < 0;
+    }
 }

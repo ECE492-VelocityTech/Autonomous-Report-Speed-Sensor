@@ -1,11 +1,9 @@
 package com.VelocityTech.CarssBackend.Service;
 
-import com.VelocityTech.CarssBackend.Model.Coordinates;
-import com.VelocityTech.CarssBackend.Model.Device;
-import com.VelocityTech.CarssBackend.Model.DeviceMode;
-import com.VelocityTech.CarssBackend.Model.Owner;
+import com.VelocityTech.CarssBackend.Model.*;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
+import com.VelocityTech.CarssBackend.Repository.TrafficDataRepository;
 import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
 import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
 import com.VelocityTech.CarssBackend.ViewModel.UpdateDeviceReqVM;
@@ -32,13 +30,16 @@ public class DeviceService {
     private final DeviceRepository deviceRepository;
     private final OwnerRepository ownerRepository;
 
+    private final TrafficDataRepository trafficDataRepository;
+
     @Value("${google.api.key}")
     private String googleApiKey;
 
     @Autowired
-    public DeviceService(DeviceRepository deviceRepository, OwnerRepository ownerRepository) {
+    public DeviceService(DeviceRepository deviceRepository, OwnerRepository ownerRepository, TrafficDataRepository trafficDataRepository) {
         this.deviceRepository = deviceRepository;
         this.ownerRepository = ownerRepository;
+        this.trafficDataRepository = trafficDataRepository;
     }
 
     @Transactional
@@ -159,5 +160,17 @@ public class DeviceService {
     public void heardFromDevice(Device device) {
         device.setLastPingTime(LocalDateTime.now());
         deviceRepository.save(device);
+    }
+
+    public double getLatestSpeed(long deviceId) {
+        Optional<TrafficData> trafficDataOptional = trafficDataRepository.findLatestTrafficDataByDeviceId(deviceId);
+        if (trafficDataOptional.isEmpty()) {
+            return -1;
+        }
+        TrafficData trafficData = trafficDataOptional.get();
+        if (!UtilService.isTrafficDataRecent(trafficData.getTimestamp())) {
+            return -1;
+        }
+        return trafficData.getSpeed();
     }
 }

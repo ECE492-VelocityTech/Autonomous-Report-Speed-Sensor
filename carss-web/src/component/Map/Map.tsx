@@ -20,6 +20,7 @@ import {
 import "@reach/combobox/styles.css";
 import ConfirmDeviceModal from "../ConfirmDeviceModal/ConfirmDeviceModal";
 import styles from "./Map.module.css";
+import { ServerUrl } from "../util/RestApi";
 
 const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 const googleMapsLibraries: LoadScriptProps["libraries"] = ["places"];
@@ -48,7 +49,7 @@ function Map() {
         const fetchCoordinates = async () => {
             try {
                 const response = await fetch(
-                    "http://carss.chickenkiller.com/api/v1/devices"
+                    `${ServerUrl}/api/v1/devices`
                 );
                 if (!response.ok) {
                     throw new Error("Failed to fetch coordinates");

@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Constants {
     public static Duration ReachableThresholdTime = Duration.ofHours(1);
+    public static Duration RecentTrafficDataTime = Duration.ofMinutes(1);
 
     public static LocalDateTime NullTime = LocalDateTime.of(1970, 1, 1, 0, 0)
             .atOffset(ZoneOffset.UTC)

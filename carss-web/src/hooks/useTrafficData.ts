@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ServerUrl } from "../component/util/RestApi";
 
 interface TrafficDataProps {
     id: number;
@@ -13,7 +14,7 @@ interface UseTrafficDataReturn {
     error: string | null;
 }
 
-const BASE_URL = "http://carss.chickenkiller.com/api/v1/devices";
+const BASE_URL = `${ServerUrl}/api/v1/devices`;
 
 export interface FilterParams {
     selectedFilter: string;

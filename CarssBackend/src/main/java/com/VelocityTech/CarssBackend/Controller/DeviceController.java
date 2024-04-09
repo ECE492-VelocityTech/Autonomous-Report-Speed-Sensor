@@ -6,6 +6,7 @@ import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
 import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
+import com.VelocityTech.CarssBackend.ViewModel.LatestSpeedResp;
 import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
 import com.VelocityTech.CarssBackend.ViewModel.UpdateDeviceReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,5 +108,11 @@ public class DeviceController {
     public ResponseEntity<String> heartbeat(@PathVariable long deviceId) {
         DeviceMode deviceMode = deviceService.heartbeat(deviceId);
         return new ResponseEntity<>(deviceMode.name(), HttpStatus.OK);
+    }
+
+    @GetMapping("/getLatestSpeed/{deviceId}")
+    public ResponseEntity<LatestSpeedResp> getLatestSpeed(@PathVariable long deviceId) {
+        double latestSpeed = deviceService.getLatestSpeed(deviceId);
+        return new ResponseEntity<>(new LatestSpeedResp(deviceId, latestSpeed), HttpStatus.OK);
     }
 }
