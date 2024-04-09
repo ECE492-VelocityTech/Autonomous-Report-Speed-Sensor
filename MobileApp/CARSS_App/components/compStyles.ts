@@ -102,7 +102,7 @@ const compStyles = StyleSheet.create({
     deviceTileBox: {
         borderRadius: 8,
         padding: 16,
-        marginBottom: 16,
+        marginBottom: 20,
         // elevation: 3, // for Android shadow
         // shadowColor: '#000', // for iOS shadow
         // shadowOffset: { width: 0, height: 1 }, // for iOS shadow
@@ -128,7 +128,21 @@ const compStyles = StyleSheet.create({
     horizontalView: {
         flexDirection: 'row',
         alignItems: 'center',
-    }
+    },
+
+    switchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    switchLabel: {
+        marginRight: 10,
+        fontSize: 18,
+    },
+
+    picker: {
+        width: 150,
+    },
 });
 
 export default compStyles;

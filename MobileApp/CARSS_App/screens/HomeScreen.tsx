@@ -75,21 +75,10 @@ const HomeScreen = ({navigation}: any) => {
                 <SafeAreaView style={compStyles.sectionContainer}>
                     <FlatList
                         data={devices}
-                        renderItem={DeviceTile}
+                        renderItem={({item}) => <DeviceTile item={item} navigation={navigation}/>}
                         keyExtractor={item => item.id.toString()}
                     />
                 </SafeAreaView>
-                <View style={compStyles.sectionContainer}>
-
-                    {devices?.map((device: DeviceReq, key: number) => (
-                        <>
-                            {/*TODO: Show devices*/}
-
-                            {/*<Text>{device.name}</Text>*/}
-                        </>
-                    ))}
-                </View>
-
                 <AddDeviceButton navigation={navigation}/>
             </View>
         </>

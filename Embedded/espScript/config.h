@@ -30,7 +30,7 @@ void changeOperationModeActive();
 
 void changeOperationModeStandby();
 
-void listenToWifiEsp();
+void receiveCommandsFromWifiEsp();
 
 void waitForSerial2ToReceive(const char* pattern, String& returnInput);
 

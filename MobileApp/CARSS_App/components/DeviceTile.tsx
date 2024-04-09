@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import compStyles from "./compStyles.ts";
 import {DeviceReq} from "./model/DeviceReq.ts";
 import StyleUtil from "./util/StyleUtil.ts";
@@ -12,7 +12,7 @@ const CircleIndicator = ({ status }: any) => {
     );
 };
 
-const DeviceTile = ({item}: any) => {
+const DeviceTile = ({item, navigation}: any) => {
 
     function getAddr() {
         if (item?.address.length > Constants.Layout.AddressCharThreshold) {
@@ -21,16 +21,24 @@ const DeviceTile = ({item}: any) => {
         return item?.address;
     }
 
-    return <>
-        <View style={[compStyles.deviceTileBox, StyleUtil.getTileBackground()]}>
-            <View style={compStyles.horizontalView}>
-                <Text style={[compStyles.deviceTileName, StyleUtil.getForegroundColor()]}>{item?.name}</Text>
-                <CircleIndicator status={item?.status} />
-            </View>
+    function onClickHandler() {
+        if (item?.id <= 0) { return; }
+        navigation.navigate('ManageDevice', { device: item });
+    }
 
-            <Text style={[compStyles.deviceTileStatus, StyleUtil.getForegroundColor()]}>{getAddr()}</Text>
-            <Text style={[compStyles.deviceTileStatus, StyleUtil.getForegroundColor()]}>{item?.speedLimit}</Text>
-        </View>
+    return <>
+        <TouchableOpacity onPress={onClickHandler}>
+            <View style={[compStyles.deviceTileBox, StyleUtil.getTileBackground()]}>
+                <View style={compStyles.horizontalView}>
+                    <Text style={[compStyles.deviceTileName, StyleUtil.getForegroundColor()]}>{item?.name}</Text>
+                    <CircleIndicator status={item?.status} />
+                </View>
+
+                <Text style={[compStyles.deviceTileStatus, StyleUtil.getForegroundColor()]}>{getAddr()}</Text>
+                <Text style={[compStyles.deviceTileStatus, StyleUtil.getForegroundColor()]}>{item?.speedLimit}</Text>
+            </View>
+        </TouchableOpacity>
+
     </>
 }
 

@@ -2,6 +2,7 @@
 
 const String WifiUtil::HearbeatEndpoint = "http://carss.chickenkiller.com/api/v1/devices/heartbeat/";
 const String WifiUtil::TrafficDataIndividualEndpoint = "http://carss.chickenkiller.com/api/v1/trafficData/device/";
+const String WifiUtil::TrafficDataBatchEndpoint = "http://carss.chickenkiller.com/api/v1/trafficData/batch/device/";
 
 
 
@@ -145,8 +146,8 @@ String WifiUtil::makeGetRequest(String &endpoint, const Configuration &config)
         Serial.println(httpResponseCode);
 
         Serial.print("HTTP Response: ");
-        Serial.println(http.getString());
         resp = http.getString();
+        Serial.println(resp);
     }
     else
     {
@@ -161,8 +162,9 @@ String WifiUtil::makeGetRequest(String &endpoint, const Configuration &config)
     return resp;
 }
 
-void WifiUtil::makeHttpPostRequest(const String &endpoint, const String &jsonStr, const Configuration &config)
+String WifiUtil::makeHttpPostRequest(const String &endpoint, const String &jsonStr, const Configuration &config)
 {
+    String result;
     while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0, 0, 0, 0))
     {
         Serial.println("Connecting to WIFI");
@@ -172,7 +174,7 @@ void WifiUtil::makeHttpPostRequest(const String &endpoint, const String &jsonStr
     if (jsonStr.length() == 0)
     {
         Serial.println("[HTTP] JSON string is empty or null");
-        return;
+        return "err: missingBody";
     }
 
     HTTPClient http;
@@ -193,13 +195,10 @@ void WifiUtil::makeHttpPostRequest(const String &endpoint, const String &jsonStr
         Serial.print("HTTP Response Code: ");
         Serial.println(httpResponseCode);
 
-        // Parse JSON response (if any)
-        DynamicJsonDocument doc(2048); // Adjust the size based on expected response size
-        deserializeJson(doc, http.getString());
-
-        // Print JSON data
-        Serial.println("JSON Response:");
-        serializeJsonPretty(doc, Serial);
+        // Print Response
+        Serial.print("HTTP Response:");
+        Serial.println(http.getString());
+        result = http.getString();
     }
     else
     {
@@ -207,10 +206,16 @@ void WifiUtil::makeHttpPostRequest(const String &endpoint, const String &jsonStr
         Serial.print(httpResponseCode);
         Serial.print(" - ");
         Serial.println(http.errorToString(httpResponseCode));
+        result = "err";
     }
 
     // Close the connection
     http.end();
+    return result;
+}
+
+void WifiUtil::parseJSON(DynamicJsonDocument& doc, String& json) {
+    deserializeJson(doc, json);
 }
 
 void WifiUtil::sendHearbeat(const Configuration &config)
@@ -219,6 +224,19 @@ void WifiUtil::sendHearbeat(const Configuration &config)
     String hearbeatEndpoint = HearbeatEndpoint;
     hearbeatEndpoint.concat(config.deviceId);
     String heartbeatResult = makeGetRequest(hearbeatEndpoint, config);
+    parseServerResp(heartbeatResult);
+}
+
+void WifiUtil::sendHearbeatIfRequired(const Configuration& config) {
+    unsigned long currentMillis = millis();
+    if (hearbeatMillis == 0) { hearbeatMillis = currentMillis; }
+    
+    if (currentMillis - hearbeatMillis >= 5000) {
+        Serial.println("***Sending Regular Hearbeat***");
+        // send heartbeat and reset timer
+        hearbeatMillis = 0; 
+        sendHearbeat(config);
+    }
 }
 
 void WifiUtil::sendSpeedDataIndividual(float& speed, String& timestamp, const Configuration &config)
@@ -242,3 +260,30 @@ void WifiUtil::sendSpeedDataIndividual(float& speed, String& timestamp, const Co
     Serial.println("Endpoint: " + trafficDataEndpoint);
     makeHttpPostRequest(trafficDataEndpoint, jsonStr, config);
 }
+
+String WifiUtil::sendSpeedDataBatch(const Configuration &config) {
+    // Create a DynamicJsonDocument
+    DynamicJsonDocument doc(1024);
+
+    // Create a JsonArray
+    JsonArray data = doc.to<JsonArray>();
+
+    // Add data to the JsonArray
+    for (int i = 0; i < aggrSpeedIndex; i++) {
+        JsonObject obj = data.createNestedObject();
+        obj["speed"] = aggrSpeeds[i];
+        obj["timestamp"] = aggrTimestamps[i];
+    }
+
+    // Serialize the JSON document to a String
+    String jsonStr;
+    serializeJson(doc, jsonStr);
+
+    Serial.println("**Sending Traffic Data Batch** \nData: ");
+    Serial.println(jsonStr);
+    String trafficDataEndpoint = TrafficDataBatchEndpoint;
+    trafficDataEndpoint.concat(config.deviceId);
+    Serial.println("Endpoint: " + trafficDataEndpoint);
+    return makeHttpPostRequest(trafficDataEndpoint, jsonStr, config);
+}
+

@@ -1,4 +1,4 @@
-import { DeviceReq } from "../model/DeviceReq.ts";
+import { DeviceReq, UpdateDeviceReq } from "../model/DeviceReq.ts";
 
 const serverURL = "http://129.128.215.79/api/v1"; // TODO: Fill in the server URL
 
@@ -63,6 +63,29 @@ const RestApi = {
         }
         console.log("getAllDevicesForOwner ERR")
         return [];
+    },
+
+    /**
+     * Adds new device to the given owner
+     */
+    updateDevice: async function(deviceId: number, device: UpdateDeviceReq) {
+        console.log("updateDevice", device);
+        const url = `${serverURL}/devices/${deviceId}`;
+        const body = device;
+        console.log("addDevice", device)
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+        if (response.ok) {
+            return await response.json();
+        } else {
+            return {id: -1}
+        }
+        // TODO: Handle error
     },
 };
 

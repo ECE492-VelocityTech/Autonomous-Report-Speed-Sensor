@@ -60,7 +60,7 @@ void waitForSerial2ToReceive(const char* pattern, String& returnInput) {
 }
 
 void resetDevice() {
-    EEPROM.put(0, 0); // Reset Marker Value
+    clearConfig();
     esp_restart();
 }
 
@@ -85,4 +85,13 @@ bool receiveWifiStatusFromWifiEsp() {
         return true;
     } 
     return false;
+}
+
+void receiveCommandsFromWifiEsp() {
+    String buff;
+    waitForSerial2ToReceive("CMD:", buff);
+    if (buff.startsWith("CMD: ResetDevice")) {
+        Serial.println("CMD: ResetDevice");
+        resetDevice();
+    }
 }

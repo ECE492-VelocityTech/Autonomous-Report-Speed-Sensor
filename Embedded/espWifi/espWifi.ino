@@ -47,8 +47,12 @@ const int gmtOffset_sec = -6 * 3600; // GMT offset in seconds
 const int daylightOffset_sec = 3600; // Daylight offset in seconds
 float speeds[15]; // Array to store speeds
 String timestamps[15]; // Array to store timestamps
+unsigned long epochTimes[15]; // Array to store epoch time for speeds; used for aggregation
+float aggrSpeeds[15]; // Array to store speeds
+String aggrTimestamps[15]; // Array to store timestamps
 
 int speedIndex = 0; // Index to keep track of the number of speeds stored
+int aggrSpeedIndex = 0; // Index to keep track of the number of speeds stored
 
 WiFiUDP udp;
 NTPClient timeClient(udp, ntpServer, gmtOffset_sec, daylightOffset_sec);
@@ -56,9 +60,12 @@ NTPClient timeClient(udp, ntpServer, gmtOffset_sec, daylightOffset_sec);
 WifiUtil wifiUtil;
 
 const int btnGPIO = 0;
+const int GREEN_LED = 5; // D5 pin number
 int btnState = false;
 
 Configuration config;
+
+DeviceStatus deviceStatus = DeviceStatus::Active;
 
 void setup()
 {
@@ -76,21 +83,27 @@ void setup()
 
 void loop()
 {
-  Serial.println("Looping");
   if(Serial2.available() > 0)
   {
     // Speed Data avilable
     getSpeedData(timeClient, wifiUtil, config, currYear, currMonth, currDay);
   }
+  resetDeviceIfRequested();
+  updateTimeIfReq();
+  wifiUtil.sendHearbeatIfRequired(config);
+  handleDeviceMode();
+  delay(1000);
+}
+
+void resetDeviceIfRequested() {
   bool resetRequested = isResetRequested(btnGPIO);
   if (resetRequested) { resetDevice(); } // Reset Device if reset requested;
-  updateTimeIfReq();
-  delay(1000);
 }
 
 void initPins()
 {
   pinMode(btnGPIO, INPUT_PULLUP);
+  pinMode(GREEN_LED, OUTPUT);
 }
 
 void initConfig()

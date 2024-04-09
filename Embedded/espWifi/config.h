@@ -6,6 +6,8 @@
 const uint32_t CONFIG_MARKER = 0xABCDDCDA;
 const int RESET_THRESHOLD = 10000;
 
+extern const int GREEN_LED;
+
 struct Configuration {
   String deviceName;
   String wifiName;
@@ -13,6 +15,14 @@ struct Configuration {
   String address;
   long deviceId;
 };
+
+enum class DeviceStatus
+{
+    Active,
+    Standby
+};
+
+extern DeviceStatus deviceStatus;
 
 void saveConfiguration(const Configuration& config);
 bool loadConfiguration(Configuration& config);
@@ -26,5 +36,13 @@ bool isResetRequested(const int& buttonPin);
 void clearConfig();
 
 void resetDevice();
+
+void parseServerResp(String& resp);
+
+void handleDeviceMode();
+
+void handleDeviceModeStandby();
+
+void handleDeviceModeActive();
 
 #endif // CONFIG_H

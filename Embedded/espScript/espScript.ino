@@ -22,6 +22,7 @@ enum class OperationMode
 {
     ConfigMissing,
     ConfigReceivedSendConfig,
+    ConfigSentWaitForWifiStatus,
     ConfigPresentWifiConnected,
     ConfigPresentWifiErr,
 };
@@ -113,7 +114,7 @@ void setup()
     initPins();
 
     bool configFound = loadConfiguration(config);
-    Serial.print("configFound: " );
+    Serial.print("configFound: ");
     Serial.println(configFound);
     if (configFound)
     {
@@ -127,22 +128,34 @@ void setup()
 
 void loop()
 {
-  Serial.print("Waiting: ");
-  if (operationMode == OperationMode::ConfigReceivedSendConfig) {
-      Serial.print("1");
-      sendConfigToWifiEsp(config);
-      initWifiStatusFromWifiESP();
-  }
-  if (operationMode == OperationMode::ConfigPresentWifiConnected) {
-      Serial.println("2");
-  }
-  if (operationMode == OperationMode::ConfigMissing) {
-      Serial.println("3");
-  }
-  if (operationMode == OperationMode::ConfigPresentWifiErr) {
-      Serial.println("4");
-  }
-  delay(1000);
+    Serial.print("Waiting: ");
+    if (operationMode == OperationMode::ConfigReceivedSendConfig)
+    {
+        Serial.print("1");
+        sendConfigToWifiEsp(config);
+        operationMode = OperationMode::ConfigSentWaitForWifiStatus;
+    }
+    else if (operationMode == OperationMode::ConfigSentWaitForWifiStatus)
+    {
+        Serial.println("5");
+        initWifiStatusFromWifiESP();
+    }
+    else if (operationMode == OperationMode::ConfigPresentWifiConnected)
+    {
+        Serial.println("2");
+        receiveCommandsFromWifiEsp();
+    }
+    else if (operationMode == OperationMode::ConfigMissing)
+    {
+        Serial.println("3");
+    }
+    else if (operationMode == OperationMode::ConfigPresentWifiErr)
+    {
+        // Config present but WiFi not connected;
+        // Enable BLE to reconfigure WiFi
+        Serial.println("4");
+    }
+    delay(1000);
 }
 
 void initPins()
@@ -158,15 +171,19 @@ void initBle()
     advertiseBle();
 }
 
-void initWifiStatusFromWifiESP() {
+void initWifiStatusFromWifiESP()
+{
     Serial.print("initWifiStatusFromWifiESP: "); // TODO Remove
     bool wifiStatus = receiveWifiStatusFromWifiEsp();
-    if (wifiStatus) {
+    if (wifiStatus)
+    {
         operationMode = OperationMode::ConfigPresentWifiConnected;
-    } else {
+    }
+    else
+    {
         operationMode = OperationMode::ConfigPresentWifiErr;
     }
-    Serial.println(wifiStatus); // TODO Remove
+    Serial.println(wifiStatus ? "True" : "False"); // TODO Remove
 }
 
 void advertiseBle()
@@ -192,5 +209,3 @@ void receiveSpeedData()
 {
     Serial.println(Serial2.readString());
 }
-
-

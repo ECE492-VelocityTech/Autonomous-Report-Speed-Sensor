@@ -98,3 +98,34 @@ void resetDevice() {
     EEPROM.put(0, 0); // Reset Marker Value
     esp_restart();
 }
+
+void parseServerResp(String& resp) {
+    Serial.print("Parsing parseServerResp");
+    Serial.print(resp);
+    if (resp == "Active") {
+        deviceStatus = DeviceStatus::Active;
+        Serial.println("Setting to Actice");
+    } else if (resp == "Standby") {
+        Serial.println("");
+        deviceStatus = DeviceStatus::Standby;
+        Serial.println("Setting to Standby");
+    }
+}
+
+void handleDeviceMode() {
+    Serial.print("Device Mode: ");
+    Serial.println(deviceStatus == DeviceStatus::Standby ? "Standby" : "Active");
+    if (deviceStatus == DeviceStatus::Standby) {
+        handleDeviceModeStandby();
+    } else {
+        handleDeviceModeActive();
+    }
+}
+
+void handleDeviceModeStandby() {
+    digitalWrite(GREEN_LED, HIGH); // Turn on the LED
+}
+
+void handleDeviceModeActive() {
+    digitalWrite(GREEN_LED, LOW); // Turn on the LED
+}
