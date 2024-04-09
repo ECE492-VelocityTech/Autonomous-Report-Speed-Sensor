@@ -8,6 +8,8 @@ import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
 import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
 import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
+import com.VelocityTech.CarssBackend.ViewModel.UpdateDeviceReqVM;
+import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -88,20 +90,21 @@ public class DeviceService {
     }
 
     @Transactional
-    public Device updateDevice(Long id, Device deviceDetails) {
-        return deviceRepository.findById(id)
-                .map(device -> {
-                    if (deviceDetails.getName() != null)
-                        device.setName(deviceDetails.getName());
-                    if (deviceDetails.getAddress() != null) {
-                        device.setAddress(deviceDetails.getAddress());
-                        Coordinates coordinates = fetchCoordinates(device.getAddress());
-                        device.setLat(coordinates.getLatitude());
-                        device.setLng(coordinates.getLongitude());
-                    }
-                    // Update additional fields here
-                    return deviceRepository.save(device);
-                }).orElseThrow(() -> new RuntimeException("Device not found with id: " + id));
+    public DeviceRespVM updateDevice(Long deviceId, UpdateDeviceReqVM updateDeviceReqVM) {
+        Device device = deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Device not found with id " + deviceId));
+        updateDeviceReqVM.updateDevice(device);
+        updateDeviceAddress(updateDeviceReqVM.getAddress(), device);
+        return DeviceRespVM.fromDevice(deviceRepository.save(device));
+    }
+
+    private void updateDeviceAddress(String newAddress, Device device) {
+        if (newAddress != null && !newAddress.isEmpty() && !newAddress.equals(device.getAddress())) {
+            Coordinates coordinates = fetchCoordinates(device.getAddress());
+            device.setLat(coordinates.getLatitude());
+            device.setLng(coordinates.getLongitude());
+            device.setAddress(newAddress);
+        }
     }
 
     @Transactional
@@ -145,8 +148,16 @@ public class DeviceService {
     public DeviceMode heartbeat(long deviceId) {
         Device device = deviceRepository.findById(deviceId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Device not found with id " + deviceId));
+        heardFromDevice(device);
+        return device.getDeviceMode();
+    }
+
+    /**
+     * Heard from device; Update lastPingTime
+     * @param device the device that we heard from
+     */
+    public void heardFromDevice(Device device) {
         device.setLastPingTime(LocalDateTime.now());
         deviceRepository.save(device);
-        return device.getDeviceMode();
     }
 }

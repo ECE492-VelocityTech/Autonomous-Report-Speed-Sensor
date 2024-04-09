@@ -20,11 +20,14 @@ public class TrafficDataService {
 
     private final TrafficDataRepository trafficDataRepository;
     private final DeviceRepository deviceRepository;
+    private final DeviceService deviceService;
 
     @Autowired
-    public TrafficDataService(TrafficDataRepository trafficDataRepository, DeviceRepository deviceRepository) {
+    public TrafficDataService(TrafficDataRepository trafficDataRepository, DeviceRepository deviceRepository,
+                              DeviceService deviceService) {
         this.trafficDataRepository = trafficDataRepository;
         this.deviceRepository = deviceRepository;
+        this.deviceService = deviceService;
     }
 
     @Transactional
@@ -32,15 +35,18 @@ public class TrafficDataService {
         Device device = deviceRepository.findById(deviceId)
                 .orElseThrow(() -> new RuntimeException("Device not found with id: " + deviceId));
         trafficData.setDevice(device);
+        deviceService.heardFromDevice(device);
         return trafficDataRepository.save(trafficData);
     }
 
+    @Transactional
     public Device createTrafficDataBatch(List<TrafficDataReqVM> trafficDataList, Long deviceId) {
         Device device = deviceRepository.findById(deviceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Device not found with id: " + deviceId));
         List<TrafficData> trafficData = trafficDataList.stream().map(trafficDataReqVM -> trafficDataReqVM.toTrafficData(device))
                 .toList();
         trafficDataRepository.saveAll(trafficData);
+        deviceService.heardFromDevice(device);
         return device;
     }
 

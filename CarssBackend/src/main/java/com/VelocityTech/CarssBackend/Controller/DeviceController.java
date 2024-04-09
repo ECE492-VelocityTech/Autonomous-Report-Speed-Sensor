@@ -7,6 +7,7 @@ import com.VelocityTech.CarssBackend.Service.DeviceService;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
 import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
 import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
+import com.VelocityTech.CarssBackend.ViewModel.UpdateDeviceReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,13 +61,8 @@ public class DeviceController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Device> updateDevice(@PathVariable Long id, @RequestBody Device deviceDetails) {
-        try {
-            Device updatedDevice = deviceService.updateDevice(id, deviceDetails);
-            return new ResponseEntity<>(updatedDevice, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<DeviceRespVM> updateDevice(@PathVariable Long id, @RequestBody UpdateDeviceReqVM updateDeviceReqVM) {
+        return new ResponseEntity<>(deviceService.updateDevice(id, updateDeviceReqVM), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
