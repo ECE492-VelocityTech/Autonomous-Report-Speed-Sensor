@@ -1,222 +1,185 @@
-import { useEffect, useState } from "react";
-import { Chart as ChartJS, registerables, defaults } from "chart.js";
-import { Row, Col } from "react-bootstrap";
-import Calendar from "../../component/Calendar";
+import { Chart as ChartJS, registerables, defaults, ChartData } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCalendar } from "@fortawesome/free-solid-svg-icons";
-import { ServerUrl } from "../../component/util/RestApi";
+import styles from "./TrafficData1.module.css";
+import useTrafficData, { FilterParams } from "../../hooks/useTrafficData";
+import { useEffect, useState } from "react";
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { getChartOptions } from "../../util/chartConfig";
+import { formatChartData } from "../../util/dataFormatter";
 
 ChartJS.register(...registerables);
-const BASE_URL = `${ServerUrl}/api/v1/devices`;
-
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;
-
-interface TrafficDataProps {
-    id: number;
-    speed: number;
-    timestamp: string;
-    direction: string;
-}
-
 function TrafficData() {
-    const [trafficData, setTrafficData] = useState<TrafficDataProps[]>([]);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isSingleDay, setIsSingleDay] = useState(false);
-    const [showCalendar, setShowCalendar] = useState(false);
+    const deviceId = sessionStorage.getItem("deviceId") || "";
+    const deviceNumber = sessionStorage.getItem("deviceNumber") || "";
+    const deviceAddress = sessionStorage.getItem("deviceAddress") || "";
+    const [chartData, setChartData] = useState<ChartData<"line">>({
+        datasets: [],
+    });
+    const [chartOptions, setChartOptions] = useState({});
 
-    const toggleCalendar = () => {
-        setShowCalendar(!showCalendar);
-    };
+    const [selectedDate, setSelectedDate] = useState(new Date());
 
-    if (
-        sessionStorage.getItem("deviceNumber") === null ||
-        sessionStorage.getItem("deviceNumber") === ""
-    ) {
-        return (
-            <>
-                <div
-                    style={{
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        height: "110vh",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "flex-start",
-                    }}
-                >
-                    <h1 style={{ color: "black", fontWeight: "bold" }}>
-                        {" "}
-                        Please select a device{" "}
-                    </h1>
-                </div>
-            </>
-        );
-    }
+    const defaultStartDate = new Date(
+        new Date().setDate(new Date().getDate() - 7)
+    );
+    const defaultEndDate = new Date();
 
-    const fetchTrafficData = async () => {
-        try {
-            let url =
-                BASE_URL +
-                "/" +
-                sessionStorage.getItem("deviceId") +
-                "/trafficData";
-            if (
-                sessionStorage.getItem("startDate") != null &&
-                sessionStorage.getItem("startDate") != ""
-            ) {
-                url +=
-                    "/dateRange?startDate=" +
-                    sessionStorage.getItem("startDate") +
-                    "&endDate=" +
-                    sessionStorage.getItem("endDate");
-            }
+    const [dateRange, setDateRange] = useState<[Date, Date]>([
+        defaultStartDate,
+        defaultEndDate,
+    ]);
 
-            const response = await fetch(url);
-            if (response.ok) {
-                const trafficData = await response.json();
-                setTrafficData(trafficData);
-            } else {
-                throw new Error("Failed to fetch data");
-            }
-        } catch (error) {
-            console.error("Error fetching data:", error);
+    const handleDateRangeChange = (dates: any) => {
+        const [start, end] = dates;
+        setDateRange([start, end]);
+        if (start && end) {
+            setFilterParams({
+                selectedFilter: "dateRange",
+                startDate: start,
+                endDate: end,
+            });
         }
     };
 
-    useEffect(() => {
-        const handleStorageChange = () => {
-            fetchTrafficData();
-        };
-        fetchTrafficData();
-        window.addEventListener("sessionStorageUpdated", handleStorageChange);
-
-        return () => {
-            window.removeEventListener(
-                "sessionStorageUpdated",
-                handleStorageChange
-            );
-        };
-    }, []);
-
-    const sortedTrafficData = [...trafficData].sort((a, b) => {
-        return (
-            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
+    const [filterParams, setFilterParams] = useState<FilterParams>({
+        selectedFilter: "date",
+        specificDate: new Date(),
     });
 
-    const chartData = {
-        labels: sortedTrafficData.map((data) => data.timestamp),
-        datasets: [
-            {
-                label: "Speed",
-                data: sortedTrafficData.map((data) => data.speed),
-                fill: false,
-                backgroundColor: "rgba(75,192,192,0.2)",
-                borderColor: "rgba(75,192,192,1)",
-                tension: 0.1,
-            },
-        ],
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newFilterType = e.target.value;
+
+        if (newFilterType === "pastWeek") {
+            setFilterParams({
+                selectedFilter: newFilterType,
+                startDate: defaultStartDate,
+                endDate: defaultEndDate,
+            });
+        } else if (newFilterType === "date") {
+            setFilterParams({
+                selectedFilter: newFilterType,
+                specificDate: new Date(),
+            });
+        } else if (newFilterType === "dateRange") {
+            setFilterParams({
+                selectedFilter: newFilterType,
+                startDate: dateRange[0],
+                endDate: dateRange[1],
+            });
+        } else {
+            setFilterParams({ selectedFilter: newFilterType });
+        }
     };
 
-    // const toggleDropdown = () => {
-    //     setIsDropdownOpen(!isDropdownOpen);
-    // };
-
-    const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setIsSingleDay(event.target.value === "option1");
+    const handleSingleDateChange = (date: Date | null) => {
+        if (!date) return;
+        setSelectedDate(date);
+        setFilterParams({ selectedFilter: "date", specificDate: date });
     };
+    console.log(chartData);
+
+    const { trafficData } = useTrafficData(deviceId, filterParams);
+
+    useEffect(() => {
+        setChartOptions(getChartOptions(filterParams.selectedFilter));
+        setChartData(formatChartData(trafficData));
+    }, [filterParams, trafficData]);
 
     return (
-        <>
-            <div
-                style={{
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    height: "110vh",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "flex-start", // Change alignItems to "flex-start" to align the logo at the top
-                }}
-            >
-                <div className="container mt-5">
-                    <div className="card">
-                        <div className="card-header">Traffic Data</div>
-                        <div className="card-body">
-                            <h5 className="card-title"></h5>
-                            <p className="card-text">
-                                Please select the range you would like to filter
-                                by:
-                            </p>
-                            <Row>
-                                <Col sm={1}>
-                                    <div className="form-check">
-                                        <label className="form-check-label">
-                                            <input
-                                                type="radio"
-                                                className="form-check-input"
-                                                name="optionsRadios"
-                                                id="optionsRadios1"
-                                                value="option1"
-                                                checked={isSingleDay}
-                                                onChange={handleRadioChange}
-                                            />
-                                            Date
-                                        </label>
-                                    </div>
-                                    <div className="form-check">
-                                        <label className="form-check-label">
-                                            <input
-                                                type="radio"
-                                                className="form-check-input"
-                                                name="optionsRadios"
-                                                id="optionsRadios2"
-                                                value="option2"
-                                                checked={!isSingleDay}
-                                                onChange={handleRadioChange}
-                                            />
-                                            Range
-                                        </label>
-                                    </div>
-                                </Col>
-                                <Col sm={4}>
-                                    <div style={{ position: "relative" }}>
-                                        <div>
-                                            <FontAwesomeIcon
-                                                icon={faCalendar}
-                                                onClick={toggleCalendar}
-                                                className="calendarIcon"
-                                            />
-                                        </div>
-                                        {showCalendar && (
-                                            <div
-                                                style={{
-                                                    position: "absolute",
-                                                    top: "100%",
-                                                    left: 0,
-                                                    zIndex: 999,
-                                                }}
-                                            >
-                                                <Calendar
-                                                    isSingleDay={isSingleDay}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                </Col>
-                            </Row>
-                        </div>
-                        <div>
-                            <Line data={chartData} />
-                        </div>
-                        <div className="card-footer text-muted">
-                            &copy; Velocity Tech
-                        </div>
-                    </div>
+        <div>
+            <div className={styles.deviceContainer}>
+                <h5>{deviceNumber}</h5>
+                <h6>Location: {deviceAddress}</h6>
+            </div>
+            <div className={styles.filtersContainer}>
+                <div className={styles.filterLabel}>
+                    <input
+                        type="radio"
+                        className="form-check-input"
+                        name="optionsRadios"
+                        id="pastWeek"
+                        value="pastWeek"
+                        onChange={handleFilterChange}
+                    />
+                    <label className="form-check-label">Past Week</label>
+                </div>
+                <div className={styles.filterLabel}>
+                    <input
+                        type="radio"
+                        className="form-check-input"
+                        name="optionsRadios"
+                        id="date"
+                        value="date"
+                        defaultChecked
+                        onChange={handleFilterChange}
+                    />
+                    <label className="form-check-label">Date</label>
+                </div>
+                <div className={styles.filterLabel}>
+                    <input
+                        type="radio"
+                        className="form-check-input"
+                        name="optionsRadios"
+                        id="dayOfTheWeek"
+                        value="dayOfTheWeek"
+                        onChange={handleFilterChange}
+                    />
+                    <label className="form-check-label">Day of The Week</label>
+                </div>
+                <div className={styles.filterLabel}>
+                    <input
+                        type="radio"
+                        className="form-check-input"
+                        name="optionsRadios"
+                        id="dateRange"
+                        value="dateRange"
+                        onChange={handleFilterChange}
+                    />
+                    <label className="form-check-label">Date Range</label>
+                </div>
+                <div className={styles.filterLabel}>
+                    <input
+                        type="radio"
+                        className="form-check-input"
+                        name="optionsRadios"
+                        id="all"
+                        value="all"
+                        onChange={handleFilterChange}
+                    />
+                    <label className="form-check-label">All</label>
                 </div>
             </div>
-        </>
+            {["date", "dateRange"].includes(filterParams.selectedFilter) && (
+                <div className={styles.additionalFilter}>
+                    {filterParams.selectedFilter === "date" && (
+                        <div>
+                            <ReactDatePicker
+                                onChange={handleSingleDateChange}
+                                selected={selectedDate}
+                                maxDate={new Date()}
+                            />
+                        </div>
+                    )}
+                    {filterParams.selectedFilter === "dateRange" && (
+                        <ReactDatePicker
+                            selectsRange={true}
+                            startDate={dateRange[0]}
+                            endDate={dateRange[1]}
+                            onChange={handleDateRangeChange}
+                            maxDate={new Date()}
+                        />
+                    )}
+                </div>
+            )}
+            <div className={styles.scrollableChartContainer}>
+                <div className={styles.chartContainer}>
+                    <Line data={chartData} options={chartOptions} />
+                </div>
+            </div>
+        </div>
     );
 }
 
