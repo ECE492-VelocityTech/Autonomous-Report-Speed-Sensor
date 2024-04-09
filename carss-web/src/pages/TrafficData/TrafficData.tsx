@@ -1,20 +1,21 @@
 import { Chart as ChartJS, registerables, defaults, ChartData } from "chart.js";
 import { Line } from "react-chartjs-2";
-import styles from "./TrafficData1.module.css";
+import styles from "./TrafficData.module.css";
 import useTrafficData, { FilterParams } from "../../hooks/useTrafficData";
 import { useEffect, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { getChartOptions } from "../../util/chartConfig";
 import { formatChartData } from "../../util/dataFormatter";
+import annotationPlugin from "chartjs-plugin-annotation";
 
-ChartJS.register(...registerables);
+ChartJS.register(...registerables, annotationPlugin);
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;
 function TrafficData() {
     const deviceId = sessionStorage.getItem("deviceId") || "";
-    const deviceNumber = sessionStorage.getItem("deviceNumber") || "";
     const deviceAddress = sessionStorage.getItem("deviceAddress") || "";
+    const speedLimit = sessionStorage.getItem("speedLimit") || "";
     const [chartData, setChartData] = useState<ChartData<"line">>({
         datasets: [],
     });
@@ -84,14 +85,16 @@ function TrafficData() {
     const { trafficData } = useTrafficData(deviceId, filterParams);
 
     useEffect(() => {
-        setChartOptions(getChartOptions(filterParams.selectedFilter));
+        setChartOptions(
+            getChartOptions(filterParams.selectedFilter, +speedLimit)
+        );
         setChartData(formatChartData(trafficData));
     }, [filterParams, trafficData]);
 
     return (
         <div>
             <div className={styles.deviceContainer}>
-                <h5>{deviceNumber}</h5>
+                <h5>Device: {deviceId}</h5>
                 <h6>Location: {deviceAddress}</h6>
             </div>
             <div className={styles.filtersContainer}>

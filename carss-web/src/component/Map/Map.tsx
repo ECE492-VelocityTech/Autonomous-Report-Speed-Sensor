@@ -27,6 +27,7 @@ function Map() {
             lng: number;
             address: string;
             name: string;
+            speedLimit: number;
         }>
     >([]);
 
@@ -37,6 +38,7 @@ function Map() {
                 if (!response.ok) {
                     throw new Error("Failed to fetch coordinates");
                 }
+
                 const data = await response.json();
                 setCoordinates(
                     data.map((item: any) => ({
@@ -45,20 +47,20 @@ function Map() {
                         lng: item.lng,
                         address: item.address,
                         name: item.name,
+                        speedLimit: item.speedLimit,
                     }))
                 );
             } catch (error) {
                 console.error(error);
             }
         };
-
         fetchCoordinates();
     }, []);
 
     const [isSetOpen, setIsOpen] = useState(false);
     const [deviceAddress, setDeviceAddress] = useState("");
-    const [deviceNumber, setDeviceNumber] = useState("");
     const [deviceId, setDeviceId] = useState(0);
+    const [speedLimit, setSpeedLimit] = useState(0);
     const [center, setCenter] = useState<google.maps.LatLngLiteral>({
         lat: 53.5444,
         lng: -113.4909,
@@ -104,8 +106,8 @@ function Map() {
                         onClick={() => {
                             setIsOpen(true);
                             setDeviceId(coordinate.id);
-                            setDeviceNumber(coordinate.name);
                             setDeviceAddress(coordinate.address);
+                            setSpeedLimit(coordinate.speedLimit);
                         }}
                     />
                 ))}
@@ -115,8 +117,8 @@ function Map() {
                     <ConfirmDeviceModal
                         setIsOpen={setIsOpen}
                         deviceId={deviceId}
-                        deviceName={deviceNumber}
                         address={deviceAddress}
+                        speedLimit={speedLimit}
                     />
                 </div>
             )}
