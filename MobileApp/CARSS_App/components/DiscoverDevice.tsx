@@ -30,7 +30,7 @@ declare module "react-native-ble-manager" {
     }
 }
 
-const DiscoverDevice = ({completeDeviceConnection, BluetoothUtil, BleManager, bleManagerEmitter, showConfiguration}: any) => {
+const DiscoverDevice = ({completeDeviceConnection, BluetoothUtil, BleManager, bleManagerEmitter, showConfiguration, navigation}: any) => {
     const [isScanning, setIsScanning] = useState(false);
     const [peripherals, setPeripherals] = useState(
         new Map<Peripheral["id"], Peripheral>()
@@ -210,7 +210,8 @@ const DiscoverDevice = ({completeDeviceConnection, BluetoothUtil, BleManager, bl
 
             </SafeAreaView>
              :
-            <ConfigureDevice BluetoothUtil={BluetoothUtil} BleManager={BleManager} connectedDeviceBleId={connectedDeviceBleId}/>
+            <ConfigureDevice BluetoothUtil={BluetoothUtil} BleManager={BleManager} connectedDeviceBleId={connectedDeviceBleId}
+                             navigation={navigation}/>
         }
         {/*{showConfiguration() && <ConfigureDevice BluetoothUtil={BluetoothUtil} BleManager={BleManager} connectedDeviceBleId={connectedDeviceBleId}/> }*/}
     </>;

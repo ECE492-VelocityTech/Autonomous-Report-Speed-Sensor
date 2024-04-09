@@ -5,9 +5,10 @@ import Calendar from "../../component/Calendar";
 import { Line } from "react-chartjs-2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
+import { ServerUrl } from "../../component/util/RestApi";
 
 ChartJS.register(...registerables);
-const BASE_URL = "http://carss.chickenkiller.com/api/v1/devices";
+const BASE_URL = `${ServerUrl}/api/v1/devices`;
 
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;

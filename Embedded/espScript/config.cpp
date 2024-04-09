@@ -26,3 +26,72 @@ bool loadConfiguration(Configuration& config) {
 
     return configFound;
 }
+
+void sendConfigToWifiEsp(const Configuration& config) {
+    String buff;
+    Serial.println("SendConfigToWifiEsp");
+
+    waitForSerial2ToReceive("Ready to receive data", buff);
+    Serial.println("Received INIT");
+    // send Wifi Cred
+    buff = config.wifiName + "\n" + config.wifiPassword + "\n";
+    buff.concat(config.deviceId);
+    // input = "Mehar iPhone\n123456789\n17";
+    // input += String(config.deviceId);
+    Serial.println("Sent to ESPWIFI: " + buff); // TODO Remove
+    Serial2.println(buff);
+
+    waitForSerial2ToReceive("ACK", buff);
+    Serial.println("Received " + buff); // TODO Remove
+
+    saveConfiguration(config);
+}
+
+void waitForSerial2ToReceive(const char* pattern, String& returnInput) {
+    while (true) {
+        while (Serial2.available() == 0) {
+            delay(100); // Wait for input
+        }
+        returnInput = Serial2.readStringUntil('\n');
+        if (returnInput.startsWith(pattern)) {
+            break; // Exit the loop if the correct input is received
+        }
+    }
+}
+
+void resetDevice() {
+    clearConfig();
+    esp_restart();
+}
+
+void clearConfig() {
+  EEPROM.begin(sizeof(CONFIG_MARKER)); // Reserve space for configuration, flag, and marker
+  EEPROM.put(0, 0); // Reset Marker Value
+  EEPROM.end();
+}
+
+void changeOperationModeStandby() {
+    waitingTime = 5000;
+}
+
+void changeOperationModeActive() {
+    waitingTime = 1000;
+}
+
+bool receiveWifiStatusFromWifiEsp() {
+    String buff;
+    waitForSerial2ToReceive("WiFi", buff);
+    if (buff.startsWith("WiFi Connected")) {
+        return true;
+    } 
+    return false;
+}
+
+void receiveCommandsFromWifiEsp() {
+    String buff;
+    waitForSerial2ToReceive("CMD:", buff);
+    if (buff.startsWith("CMD: ResetDevice")) {
+        Serial.println("CMD: ResetDevice");
+        resetDevice();
+    }
+}

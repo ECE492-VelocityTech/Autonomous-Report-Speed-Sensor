@@ -1,7 +1,9 @@
 package com.VelocityTech.CarssBackend.Controller;
 
+import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
+import com.VelocityTech.CarssBackend.ViewModel.TrafficDataReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,6 +32,12 @@ public class TrafficDataController {
     public ResponseEntity<TrafficData> addTrafficData(@PathVariable Long deviceId, @RequestBody TrafficData trafficData) {
         TrafficData savedTrafficData = trafficDataService.createTrafficData(trafficData, deviceId);
         return new ResponseEntity<>(savedTrafficData, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/batch/device/{deviceId}")
+    public ResponseEntity<String> addBatchTrafficData(@PathVariable Long deviceId, @RequestBody List<TrafficDataReqVM> trafficDataList) {
+        Device device = trafficDataService.createTrafficDataBatch(trafficDataList, deviceId);
+        return new ResponseEntity<>(device.getDeviceMode().toString(), HttpStatus.CREATED);
     }
 
     @GetMapping

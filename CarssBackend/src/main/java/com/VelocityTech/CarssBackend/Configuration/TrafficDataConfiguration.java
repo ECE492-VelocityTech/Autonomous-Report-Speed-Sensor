@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 @Configuration
@@ -31,7 +32,7 @@ public class TrafficDataConfiguration {
             }
 
             Owner owner = new Owner("john.doe@test.com", "1234 Main St");
-            Device device = new Device("01", "10045 118 St NW, Edmonton, AB, T5K 2K2", owner);
+            Device device = new Device("Device01", "10045 118 St NW, Edmonton, AB, T5K 2K2", 60, owner, LocalDateTime.now());
             ownerService.addNewOwner(owner);
             deviceService.addDevice(device);
             TrafficData dummyData1 = new TrafficData(30.5,LocalDateTime.of(2024, Month.JANUARY,24,14,0),device);

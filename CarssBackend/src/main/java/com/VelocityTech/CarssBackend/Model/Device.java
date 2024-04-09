@@ -2,7 +2,9 @@ package com.VelocityTech.CarssBackend.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -14,10 +16,13 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "deviceSequence")
     @SequenceGenerator(name = "deviceSequence", sequenceName = "deviceSequence", allocationSize = 1)
     private Long id;
-    private String deviceNo;
+    private String name;
     private String address;
+    private float speedLimit;
     private double lat;
     private double lng;
+    private LocalDateTime lastPingTime;
+    private DeviceMode deviceMode = DeviceMode.Active;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
@@ -29,10 +34,12 @@ public class Device {
 
     public Device(){}
 
-    public Device(String deviceNo, String address, Owner owner) {
-        this.deviceNo = deviceNo;
+    public Device(String name, String address, float speedLimit, Owner owner, LocalDateTime lastPingTime) {
+        this.name = name;
         this.address = address;
         this.owner = owner;
+        this.speedLimit = speedLimit;
+        this.lastPingTime = lastPingTime;
     }
 
     public Long getId() {
@@ -43,12 +50,12 @@ public class Device {
         this.id = id;
     }
 
-    public String getDeviceNo() {
-        return deviceNo;
+    public String getName() {
+        return name;
     }
 
-    public void setDeviceNo(String deviceNo) {
-        this.deviceNo = deviceNo;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getAddress() {
@@ -80,6 +87,22 @@ public class Device {
         data.setDevice(this);
     }
 
+    public LocalDateTime getLastPingTime() {
+        return lastPingTime;
+    }
+
+    public void setLastPingTime(LocalDateTime lastPingTime) {
+        this.lastPingTime = lastPingTime;
+    }
+
+    public DeviceMode getDeviceMode() {
+        return deviceMode;
+    }
+
+    public void setDeviceMode(DeviceMode deviceMode) {
+        this.deviceMode = deviceMode;
+    }
+
     public void removeTrafficData(TrafficData data) {
         trafficData.remove(data);
         data.setDevice(null);
@@ -99,5 +122,13 @@ public class Device {
 
     public void setLng(double lng) {
         this.lng = lng;
+    }
+
+    public float getSpeedLimit() {
+        return speedLimit;
+    }
+
+    public void setSpeedLimit(float speedLimit) {
+        this.speedLimit = speedLimit;
     }
 }

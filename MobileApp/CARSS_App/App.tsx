@@ -13,6 +13,7 @@ import discoverDevice from "./components/DiscoverDevice.tsx";
 import Constants from "./components/Constants.js";
 import styleUtil from "./components/util/StyleUtil.ts";
 import AddDeviceScreen from "./screens/AddDeviceScreen.tsx";
+import ManageDeviceScreen from "./screens/ManageDeviceScreen.tsx";
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +37,7 @@ function App(): React.JSX.Element {
               />
               <Stack.Screen name="SignIn" component={SignInScreen} />
               <Stack.Screen name="AddDevice" component={AddDeviceScreen} options={{title: 'Add Device'}}/>
+              <Stack.Screen name="ManageDevice" component={ManageDeviceScreen} options={{title: 'Manage Device'}}/>
           </Stack.Navigator>
       </NavigationContainer>
   );

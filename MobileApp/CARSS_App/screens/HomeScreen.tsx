@@ -1,6 +1,6 @@
 import styles from "./styles.ts";
 import React, { useEffect, useState } from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Pressable, SafeAreaView, Text, TouchableOpacity, View } from "react-native";
 import SessionUtil from "../components/util/SessionUtil.ts";
 import sessionUtil from "../components/util/SessionUtil.ts";
 import { useFocusEffect } from "@react-navigation/native";
@@ -10,10 +10,13 @@ import AddDeviceButton from "../components/AddDeviceButton.tsx";
 import RestApi from "../components/util/RestApi.ts";
 import signIn from "../components/SignIn.tsx";
 import compStyles from "../components/compStyles.ts";
+import { DeviceReq } from "../components/model/DeviceReq.ts";
+import DeviceTile from "../components/DeviceTile.tsx";
+import { DeviceResp } from "../components/model/DeviceResp.ts";
 
 const HomeScreen = ({navigation}: any) => {
     const [currentUser, setCurrentUser] = useState<User>();
-    const [devices, setDevices] = useState<Device[]>();
+    const [devices, setDevices] = useState<DeviceResp[]>();
 
     const determineIfSignedIn = async () => {
         let signedIn = await SessionUtil.isSignedIn();
@@ -24,6 +27,9 @@ const HomeScreen = ({navigation}: any) => {
         if (signedInUser) {
             setCurrentUser(signedInUser);
             await SessionUtil.setUserSignedIn(signedInUser);
+            // TODO Remove
+            console.log("Set Current User Id: ", SessionUtil.getCacheCurrentUserId())
+            await showDevicesForOwner();
             return true;
         }
         else {
@@ -38,19 +44,23 @@ const HomeScreen = ({navigation}: any) => {
     }
 
     const showDevicesForOwner = async () => {
-        let userDevices = await RestApi.getAllDevicesForOwner(sessionUtil.)
-        setDevices(userDevices);
+        let userDevices = await RestApi.getAllDevicesForOwner(sessionUtil.getCacheCurrentUserId())
+        console.log("showDevicesForOwner", userDevices)
+        if (userDevices) {
+            setDevices(userDevices);
+        }
     }
 
     const initHomePage = async function() {
         let signedIn = await determineIfSignedIn();
         if (!signedIn) { return; }
-        await showDevicesForOwner();
+
     }
 
-    useFocusEffect(() => {
+    useFocusEffect(React.useCallback(() => {
+        showDevicesForOwner();
         initHomePage();
-    });
+    }, []));
 
     const getCurrentUserName = function() {
         if (currentUser) { return currentUser.user.givenName }
@@ -61,14 +71,14 @@ const HomeScreen = ({navigation}: any) => {
         <>
             <View style={[styles.container, StyleUtil.getBackgroundColor()]}>
                 <Text style={styles.text}>Signed In: {getCurrentUserName()}</Text>
-                <View style={compStyles.sectionContainer}>
-                    {devices?.map((device: Device, key: number) => (
-                        <>
-                            {/*TODO: Show devices*/}
-                            <Text>{device.deviceNo}</Text>
-                        </>
-                    ))}
-                </View>
+
+                <SafeAreaView style={compStyles.sectionContainer}>
+                    <FlatList
+                        data={devices}
+                        renderItem={({item}) => <DeviceTile item={item} navigation={navigation}/>}
+                        keyExtractor={item => item.id.toString()}
+                    />
+                </SafeAreaView>
                 <AddDeviceButton navigation={navigation}/>
             </View>
         </>

@@ -5,13 +5,17 @@ import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Model.TrafficDataDTO;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.TrafficDataRepository;
+import com.VelocityTech.CarssBackend.ViewModel.TrafficDataReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.*;
 
 import java.time.temporal.ChronoField;
@@ -22,11 +26,14 @@ public class TrafficDataService {
 
     private final TrafficDataRepository trafficDataRepository;
     private final DeviceRepository deviceRepository;
+    private final DeviceService deviceService;
 
     @Autowired
-    public TrafficDataService(TrafficDataRepository trafficDataRepository, DeviceRepository deviceRepository) {
+    public TrafficDataService(TrafficDataRepository trafficDataRepository, DeviceRepository deviceRepository,
+                              DeviceService deviceService) {
         this.trafficDataRepository = trafficDataRepository;
         this.deviceRepository = deviceRepository;
+        this.deviceService = deviceService;
     }
 
     @Transactional
@@ -34,7 +41,19 @@ public class TrafficDataService {
         Device device = deviceRepository.findById(deviceId)
                 .orElseThrow(() -> new RuntimeException("Device not found with id: " + deviceId));
         trafficData.setDevice(device);
+        deviceService.heardFromDevice(device);
         return trafficDataRepository.save(trafficData);
+    }
+
+    @Transactional
+    public Device createTrafficDataBatch(List<TrafficDataReqVM> trafficDataList, Long deviceId) {
+        Device device = deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Device not found with id: " + deviceId));
+        List<TrafficData> trafficData = trafficDataList.stream().map(trafficDataReqVM -> trafficDataReqVM.toTrafficData(device))
+                .toList();
+        trafficDataRepository.saveAll(trafficData);
+        deviceService.heardFromDevice(device);
+        return device;
     }
 
     @Transactional(readOnly = true)

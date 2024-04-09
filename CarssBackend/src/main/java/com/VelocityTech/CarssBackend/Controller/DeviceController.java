@@ -1,10 +1,15 @@
 package com.VelocityTech.CarssBackend.Controller;
 
 import com.VelocityTech.CarssBackend.Model.Device;
+import com.VelocityTech.CarssBackend.Model.DeviceMode;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Model.TrafficDataDTO;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
+import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
+import com.VelocityTech.CarssBackend.ViewModel.LatestSpeedResp;
+import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
+import com.VelocityTech.CarssBackend.ViewModel.UpdateDeviceReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -12,9 +17,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+
+import static com.VelocityTech.CarssBackend.Configuration.Constants.TimeSyncFormatter;
 
 @RestController
 @RequestMapping("/api/v1/devices")
@@ -36,6 +44,12 @@ public class DeviceController {
         return new ResponseEntity<>(newDevice, HttpStatus.CREATED);
     }
 
+    @PostMapping("/create/{ownerId}")
+    public ResponseEntity<Device> createDevice(@PathVariable Long ownerId, @RequestBody NewDeviceReqVM deviceVM) {
+        Device newDevice = deviceService.createNewDevice(deviceVM, ownerId);
+        return new ResponseEntity<>(newDevice, HttpStatus.CREATED);
+    }
+
     @GetMapping
     public ResponseEntity<List<Device>> getAllDevices() {
         List<Device> devices = deviceService.getAllDevices();
@@ -50,13 +64,8 @@ public class DeviceController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Device> updateDevice(@PathVariable Long id, @RequestBody Device deviceDetails) {
-        try {
-            Device updatedDevice = deviceService.updateDevice(id, deviceDetails);
-            return new ResponseEntity<>(updatedDevice, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<DeviceRespVM> updateDevice(@PathVariable Long id, @RequestBody UpdateDeviceReqVM updateDeviceReqVM) {
+        return new ResponseEntity<>(deviceService.updateDevice(id, updateDeviceReqVM), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -67,9 +76,27 @@ public class DeviceController {
 
 
     @GetMapping("/owner/{ownerId}")
-    public ResponseEntity<List<Device>> getAllDevicesForOwner(@PathVariable long ownerId) {
-        List<Device> devices = deviceService.getAllDevicesForOwner(ownerId);
+    public ResponseEntity<List<DeviceRespVM>> getAllDevicesForOwner(@PathVariable long ownerId) {
+        List<DeviceRespVM> devices = deviceService.getAllDevicesForOwner(ownerId);
         return new ResponseEntity<>(devices, HttpStatus.OK);
+    }
+
+    @GetMapping("/time")
+    public ResponseEntity<String> getTime() {
+        LocalDateTime date = LocalDateTime.now();
+        return new ResponseEntity<>(date.format(TimeSyncFormatter), HttpStatus.OK);
+    }
+
+    @GetMapping("/heartbeat/{deviceId}")
+    public ResponseEntity<String> heartbeat(@PathVariable long deviceId) {
+        DeviceMode deviceMode = deviceService.heartbeat(deviceId);
+        return new ResponseEntity<>(deviceMode.name(), HttpStatus.OK);
+    }
+
+    @GetMapping("/getLatestSpeed/{deviceId}")
+    public ResponseEntity<LatestSpeedResp> getLatestSpeed(@PathVariable long deviceId) {
+        double latestSpeed = deviceService.getLatestSpeed(deviceId);
+        return new ResponseEntity<>(new LatestSpeedResp(deviceId, latestSpeed), HttpStatus.OK);
     }
 
     @GetMapping("/{deviceId}/trafficData")

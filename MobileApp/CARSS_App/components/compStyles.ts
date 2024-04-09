@@ -98,6 +98,51 @@ const compStyles = StyleSheet.create({
         borderBottomWidth: 1,
         // borderBottomColor: '#ccc',
     },
+
+    deviceTileBox: {
+        borderRadius: 8,
+        padding: 16,
+        marginBottom: 20,
+        // elevation: 3, // for Android shadow
+        // shadowColor: '#000', // for iOS shadow
+        // shadowOffset: { width: 0, height: 1 }, // for iOS shadow
+        shadowOpacity: 0.8, // for iOS shadow
+        shadowRadius: 2, // for iOS shadow
+    },
+    deviceTileName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    deviceTileStatus: {
+        fontSize: 16,
+    },
+
+    circle: {
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        marginLeft: 15,
+    },
+
+    horizontalView: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    switchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    switchLabel: {
+        marginRight: 10,
+        fontSize: 18,
+    },
+
+    picker: {
+        width: 150,
+    },
 });
 
 export default compStyles;

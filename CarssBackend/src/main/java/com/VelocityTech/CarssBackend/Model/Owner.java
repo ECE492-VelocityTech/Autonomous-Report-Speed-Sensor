@@ -12,6 +12,7 @@ public class Owner {
     @SequenceGenerator(name = "OwnerSequence", sequenceName = "OwnerSequence", allocationSize = 1)
     private Long id;
 
+    @Column(unique = true)
     private String email;
     private String address;
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -1,12 +1,16 @@
 package com.VelocityTech.CarssBackend.Service;
 
-import com.VelocityTech.CarssBackend.Model.Coordinates;
-import com.VelocityTech.CarssBackend.Model.Device;
-import com.VelocityTech.CarssBackend.Model.Owner;
+import com.VelocityTech.CarssBackend.Model.*;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
+import com.VelocityTech.CarssBackend.Repository.TrafficDataRepository;
+import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
+import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
+import com.VelocityTech.CarssBackend.ViewModel.UpdateDeviceReqVM;
+import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +18,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONObject;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,13 +30,16 @@ public class DeviceService {
     private final DeviceRepository deviceRepository;
     private final OwnerRepository ownerRepository;
 
+    private final TrafficDataRepository trafficDataRepository;
+
     @Value("${google.api.key}")
     private String googleApiKey;
 
     @Autowired
-    public DeviceService(DeviceRepository deviceRepository, OwnerRepository ownerRepository) {
+    public DeviceService(DeviceRepository deviceRepository, OwnerRepository ownerRepository, TrafficDataRepository trafficDataRepository) {
         this.deviceRepository = deviceRepository;
         this.ownerRepository = ownerRepository;
+        this.trafficDataRepository = trafficDataRepository;
     }
 
     @Transactional
@@ -53,13 +63,26 @@ public class DeviceService {
         return deviceRepository.save(device);
     }
 
+    public Device createNewDevice(NewDeviceReqVM deviceVM, Long ownerId) {
+        Owner owner = ownerRepository.findById(ownerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Owner not found with id: " + ownerId));
+        Device device = deviceVM.toDevice(owner);
+        if (device.getAddress() != null) {
+            Coordinates coordinates = fetchCoordinates(device.getAddress());
+            device.setLat(coordinates.getLatitude());
+            device.setLng(coordinates.getLongitude());
+        }
+        return deviceRepository.save(device);
+    }
+
     @Transactional(readOnly = true)
     public List<Device> getAllDevices() {
         return deviceRepository.findAll();
     }
 
-    public List<Device> getAllDevicesForOwner(long ownerId) {
-        return deviceRepository.findByOwnerId(ownerId);
+    public List<DeviceRespVM> getAllDevicesForOwner(long ownerId) {
+        List<Device> devices = deviceRepository.findByOwnerId(ownerId);
+        return devices.stream().map(DeviceRespVM::fromDevice).toList();
     }
 
     @Transactional(readOnly = true)
@@ -68,20 +91,21 @@ public class DeviceService {
     }
 
     @Transactional
-    public Device updateDevice(Long id, Device deviceDetails) {
-        return deviceRepository.findById(id)
-                .map(device -> {
-                    if (deviceDetails.getDeviceNo() != null)
-                        device.setDeviceNo(deviceDetails.getDeviceNo());
-                    if (deviceDetails.getAddress() != null) {
-                        device.setAddress(deviceDetails.getAddress());
-                        Coordinates coordinates = fetchCoordinates(device.getAddress());
-                        device.setLat(coordinates.getLatitude());
-                        device.setLng(coordinates.getLongitude());
-                    }
-                    // Update additional fields here
-                    return deviceRepository.save(device);
-                }).orElseThrow(() -> new RuntimeException("Device not found with id: " + id));
+    public DeviceRespVM updateDevice(Long deviceId, UpdateDeviceReqVM updateDeviceReqVM) {
+        Device device = deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Device not found with id " + deviceId));
+        updateDeviceReqVM.updateDevice(device);
+        updateDeviceAddress(updateDeviceReqVM.getAddress(), device);
+        return DeviceRespVM.fromDevice(deviceRepository.save(device));
+    }
+
+    private void updateDeviceAddress(String newAddress, Device device) {
+        if (newAddress != null && !newAddress.isEmpty() && !newAddress.equals(device.getAddress())) {
+            Coordinates coordinates = fetchCoordinates(device.getAddress());
+            device.setLat(coordinates.getLatitude());
+            device.setLng(coordinates.getLongitude());
+            device.setAddress(newAddress);
+        }
     }
 
     @Transactional
@@ -120,5 +144,33 @@ public class DeviceService {
             System.out.println("Error fetching coordinates from Google API");
         }
         return coordinates;
+    }
+
+    public DeviceMode heartbeat(long deviceId) {
+        Device device = deviceRepository.findById(deviceId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Device not found with id " + deviceId));
+        heardFromDevice(device);
+        return device.getDeviceMode();
+    }
+
+    /**
+     * Heard from device; Update lastPingTime
+     * @param device the device that we heard from
+     */
+    public void heardFromDevice(Device device) {
+        device.setLastPingTime(LocalDateTime.now());
+        deviceRepository.save(device);
+    }
+
+    public double getLatestSpeed(long deviceId) {
+        Optional<TrafficData> trafficDataOptional = trafficDataRepository.findLatestTrafficDataByDeviceId(deviceId);
+        if (trafficDataOptional.isEmpty()) {
+            return -1;
+        }
+        TrafficData trafficData = trafficDataOptional.get();
+        if (!UtilService.isTrafficDataRecent(trafficData.getTimestamp())) {
+            return -1;
+        }
+        return trafficData.getSpeed();
     }
 }

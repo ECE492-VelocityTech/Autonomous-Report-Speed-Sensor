@@ -43,6 +43,7 @@ const SessionUtil = {
      */
     setUserSignedIn: async function(user: User) {
         let ownerResp = await RestApi.ownerSignIn(user.user.email, "");
+        if (!ownerResp) { return; } // TODO: Handle error
         SessionUtil.setCacheCurrentUser(user);
         SessionUtil.setCacheCurrentUserId(ownerResp.id);
     }
