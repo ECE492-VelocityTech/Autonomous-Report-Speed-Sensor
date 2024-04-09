@@ -2,16 +2,20 @@ package com.VelocityTech.CarssBackend.Service;
 
 import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
+import com.VelocityTech.CarssBackend.Model.TrafficDataDTO;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.TrafficDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import java.time.temporal.ChronoField;
+import java.util.stream.Collectors;
 
 @Service
 public class TrafficDataService {
@@ -45,8 +49,12 @@ public class TrafficDataService {
     }
 
     @Transactional(readOnly = true)
-    public List<TrafficData> findAllTrafficDataByDeviceId(Long deviceId) {
-        return trafficDataRepository.findByDeviceId(deviceId);
+    public List<TrafficDataDTO> findAllTrafficDataByDeviceId(Long deviceId) {
+        List<TrafficData> trafficDataList = trafficDataRepository.findByDeviceId(deviceId);
+
+        return trafficDataList.stream()
+                .map(data -> new TrafficDataDTO(data.getTimestamp().toString(), data.getSpeed()))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -92,11 +100,66 @@ public class TrafficDataService {
     }
 
     @Transactional
-    public List<TrafficData> findTrafficDataByDeviceIdAndDateRange(Long deviceId, LocalDate startDate, LocalDate endDate) {
+    public List<TrafficDataDTO> filterTrafficDataByDeviceAndDate(Long deviceId, LocalDate date) {
+        LocalDateTime startOfDay = date.atStartOfDay(); // Start of the day
+        LocalDateTime endOfDay = date.plusDays(1).atStartOfDay().minusSeconds(1);
 
+        List<TrafficData> trafficDataList = trafficDataRepository.findByDeviceIdAndTimestampBetween(deviceId, startOfDay, endOfDay);
+
+        Map<Integer, Double> calculatedAverages = trafficDataList.stream()
+                .collect(Collectors.groupingBy(
+                        trafficData -> trafficData.getTimestamp().getHour(),
+                        Collectors.averagingDouble(TrafficData::getSpeed)
+                ));
+        List<TrafficDataDTO> trafficDataByHour = new ArrayList<>();
+        for (int hour = 0; hour < 24; hour++) {
+            Double averageSpeed = calculatedAverages.getOrDefault(hour, 0.0);
+            trafficDataByHour.add(new TrafficDataDTO(String.format("%02d:00", hour), averageSpeed));
+        }
+
+        return trafficDataByHour;
+    }
+
+
+    @Transactional
+    public List<TrafficDataDTO> findTrafficDataByDeviceIdAndDateRange(Long deviceId, LocalDate startDate, LocalDate endDate) {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay().minusNanos(1);
+        List<TrafficData> trafficDataList = trafficDataRepository.findByDeviceIdAndTimestampBetween(deviceId, startDateTime, endDateTime);
+        Map<LocalDate, Double> averageSpeedByDate = trafficDataList.stream()
+                .collect(Collectors.groupingBy(
+                        trafficData -> trafficData.getTimestamp().toLocalDate(),
+                        Collectors.averagingDouble(TrafficData::getSpeed)
+                ));
 
-        return trafficDataRepository.findByDeviceIdAndTimestampBetween(deviceId, startDateTime, endDateTime);
+        List<TrafficDataDTO> trafficDataDTOList = new ArrayList<>();
+
+        LocalDate currentDate = startDate;
+        while (!currentDate.isAfter(endDate)) {
+            Double averageSpeed = averageSpeedByDate.getOrDefault(currentDate, 0.0);
+            trafficDataDTOList.add(new TrafficDataDTO(currentDate.toString(), averageSpeed));
+            currentDate = currentDate.plusDays(1);
+        }
+        return trafficDataDTOList;
     }
+
+    @Transactional
+    public List<TrafficDataDTO> findAverageSpeedByDayOfWeek(Long deviceId) {
+        List<TrafficData> trafficDataList = trafficDataRepository.findByDeviceId(deviceId);
+
+        double[] sumSpeeds = new double[7];
+        int[] counts = new int[7];
+
+        trafficDataList.forEach(data -> {
+            int dayIndex = data.getTimestamp().getDayOfWeek().getValue() - 1;
+            sumSpeeds[dayIndex] += data.getSpeed();
+            counts[dayIndex]++;
+        });
+
+        return Arrays.stream(DayOfWeek.values())
+                .map(day -> new TrafficDataDTO(day.name(), counts[day.getValue() - 1] > 0 ? sumSpeeds[day.getValue() - 1] / counts[day.getValue() - 1] : 0))
+                .collect(Collectors.toList());
+    }
+
+
 }

@@ -1,28 +1,13 @@
-import {
-    GoogleMap,
-    useLoadScript,
-    LoadScriptProps,
-    MarkerF,
-} from "@react-google-maps/api";
-
 import { useEffect, useState } from "react";
-import usePlacesAutocomplete, {
-    getGeocode,
-    getLatLng,
-} from "use-places-autocomplete";
-import {
-    Combobox,
-    ComboboxInput,
-    ComboboxPopover,
-    ComboboxList,
-    ComboboxOption,
-} from "@reach/combobox";
-import "@reach/combobox/styles.css";
+import { GoogleMap, useLoadScript, MarkerF } from "@react-google-maps/api";
+
 import ConfirmDeviceModal from "../ConfirmDeviceModal/ConfirmDeviceModal";
 import styles from "./Map.module.css";
+import AutoComplete from "../AutoComplete/AutoComplete";
+import { getGeocode, getLatLng } from "use-places-autocomplete";
 
-const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-const googleMapsLibraries: LoadScriptProps["libraries"] = ["places"];
+const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY!;
+const googleMapsLibraries = ["places"];
 const mapContainerStyle = {
     width: "100%",
     height: "500px",
@@ -54,14 +39,15 @@ function Map() {
                     throw new Error("Failed to fetch coordinates");
                 }
                 const data = await response.json();
-                const fetchedCoordinates = data.map((item: any) => ({
-                    id: item.id,
-                    lat: item.lat,
-                    lng: item.lng,
-                    address: item.address,
-                    name: item.name,
-                }));
-                setCoordinates(fetchedCoordinates);
+                setCoordinates(
+                    data.map((item: any) => ({
+                        id: item.id,
+                        lat: item.lat,
+                        lng: item.lng,
+                        address: item.address,
+                        name: item.name,
+                    }))
+                );
             } catch (error) {
                 console.error(error);
             }
@@ -70,130 +56,73 @@ function Map() {
         fetchCoordinates();
     }, []);
 
-    const markerPosition = {
-        lat: 46.0851248,
-        lng: -64.786682,
-    };
-
     const [isSetOpen, setIsOpen] = useState(false);
     const [deviceAddress, setDeviceAddress] = useState("");
-    const [deviceNumber, setDeviceNumber] = useState("0");
+    const [deviceNumber, setDeviceNumber] = useState("");
     const [deviceId, setDeviceId] = useState(0);
-    const [isResetOpen, setResetIsOpen] = useState(false);
-    const [selected, setSelected] = useState(null);
-    const [center, setCenter] = useState({
+    const [center, setCenter] = useState<google.maps.LatLngLiteral>({
         lat: 53.5444,
         lng: -113.4909,
     });
     const [zoom, setZoom] = useState(10);
 
     const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: apiKey || "", //sessionStorage.getItem("googleApiKey") || "",
-        libraries: googleMapsLibraries,
+        googleMapsApiKey: apiKey,
+        libraries: googleMapsLibraries as "places"[],
     });
+
+    const handlePlaceSelect = async (location: google.maps.LatLngLiteral) => {
+        const results = await getGeocode({ location });
+        const { lat, lng } = await getLatLng(results[0]);
+        setCenter({ lat, lng });
+        setZoom(18);
+    };
 
     if (loadError) return <div>Error loading maps</div>;
     if (!isLoaded) return <div>Loading maps</div>;
 
     return (
         <>
-            <div className="places-container" style={{ paddingBottom: "10px" }}>
-                <PlacesAutoComplete
-                    setSelected={setSelected}
-                    setZoom={setZoom}
-                    setCenter={setCenter}
+            <div
+                className="places-container"
+                style={{ paddingBottom: "10px", width: "100%" }}
+            >
+                <AutoComplete
+                    onPlaceSelected={handlePlaceSelect}
+                    googleMapsApi={window.google.maps}
                 />
             </div>
-            <div>
-                <GoogleMap
-                    mapContainerStyle={mapContainerStyle}
-                    zoom={zoom}
-                    center={center}
-                    options={options}
-                >
-                    {/* <MarkerF
-                        position={markerPosition}
-                        onClick={() => setIsOpen(true)}
-                    /> */}
-                    {/* {selected && <Marker position={selected} />} */}
-                    {coordinates.map((coordinate, index) => (
-                        <MarkerF
-                            key={index}
-                            position={coordinate}
-                            onClick={() => {
-                                setIsOpen(true);
-                                setDeviceId(coordinate.id);
-                                setDeviceNumber(coordinate.name);
-                                setDeviceAddress(coordinate.address);
-                            }}
-                        />
-                    ))}
-                </GoogleMap>
-                {/* <div style={{ paddingTop: "10px" }}>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => setResetIsOpen(true)}
-                    >
-                        Reset
-                    </button>
-                </div> */}
-                {isSetOpen && (
-                    <div className={styles.modalOverlay}>
-                        <ConfirmDeviceModal
-                            setIsOpen={setIsOpen}
-                            deviceId={deviceId}
-                            deviceName={deviceNumber}
-                            address={deviceAddress}
-                        />
-                    </div>
-                )}
-            </div>
+            <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                zoom={zoom}
+                center={center}
+                options={options}
+            >
+                {coordinates.map((coordinate) => (
+                    <MarkerF
+                        key={coordinate.id}
+                        position={{ lat: coordinate.lat, lng: coordinate.lng }}
+                        onClick={() => {
+                            setIsOpen(true);
+                            setDeviceId(coordinate.id);
+                            setDeviceNumber(coordinate.name);
+                            setDeviceAddress(coordinate.address);
+                        }}
+                    />
+                ))}
+            </GoogleMap>
+            {isSetOpen && (
+                <div className={styles.modalOverlay}>
+                    <ConfirmDeviceModal
+                        setIsOpen={setIsOpen}
+                        deviceId={deviceId}
+                        deviceName={deviceNumber}
+                        address={deviceAddress}
+                    />
+                </div>
+            )}
         </>
     );
 }
-
-const PlacesAutoComplete = ({ setSelected, setZoom, setCenter }: any) => {
-    const {
-        ready,
-        value,
-        setValue,
-        suggestions: { status, data },
-        clearSuggestions,
-    } = usePlacesAutocomplete();
-
-    const handleSelect = async (address: string) => {
-        setValue(address, false);
-        clearSuggestions();
-
-        const results = await getGeocode({ address });
-        const { lat, lng } = await getLatLng(results[0]);
-        setSelected({ lat, lng });
-        setCenter({ lat, lng });
-        setZoom(15);
-    };
-
-    return (
-        <Combobox onSelect={handleSelect}>
-            <ComboboxInput
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                disabled={!ready}
-                className="combobox-input form-control me-sm-2"
-                placeholder="Enter an address"
-            />
-            <ComboboxPopover>
-                <ComboboxList className="combobox-list">
-                    {status === "OK" &&
-                        data.map(({ place_id, description }) => (
-                            <ComboboxOption
-                                key={place_id}
-                                value={description}
-                            />
-                        ))}
-                </ComboboxList>
-            </ComboboxPopover>
-        </Combobox>
-    );
-};
 
 export default Map;
