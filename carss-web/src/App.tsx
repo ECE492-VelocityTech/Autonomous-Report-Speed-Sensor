@@ -1,31 +1,14 @@
-import NavBar from "./Navigation/NavBar";
-import Home from "./component/Home";
-import TrafficData from "./component/TrafficData";
-import Device from "./component/Device";
-import About from "./component/About";
+import NavBar from "./component/NavBar/NavBar";
+import Home from "./pages/Home/Home";
+import TrafficData from "./pages/TrafficData/TrafficData";
+import TrafficData1 from "./pages/TrafficData1/TrafficData1";
+import Device from "./pages/Device/Device";
+import About from "./pages/About";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
+
+import "./App.css";
 
 function App() {
-    useEffect(() => {
-        const fetchApiKey = async () => {
-            try {
-                const response = await fetch(
-                    "http://localhost:8080/api/v1/auth/googleApiKey"
-                );
-                if (!response.ok) {
-                    throw new Error("Failed to fetch API key");
-                }
-                const data = await response.text();
-                sessionStorage.setItem("googleApiKey", data);
-            } catch (error) {
-                console.error("Error fetching API key:", error);
-            }
-        };
-
-        fetchApiKey();
-    }, []);
-
     return (
         <>
             <Router>
@@ -33,7 +16,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/device" element={<Device />} />
-                    <Route path="/trafficData" element={<TrafficData />} />
+                    <Route path="/trafficData" element={<TrafficData1 />} />
                     <Route path="/about" element={<About />} />
                 </Routes>
             </Router>
