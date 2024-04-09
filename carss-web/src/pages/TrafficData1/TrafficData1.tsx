@@ -2,13 +2,47 @@ import { Chart as ChartJS, registerables, defaults } from "chart.js";
 import { Line } from "react-chartjs-2";
 import styles from "./TrafficData1.module.css";
 import useTrafficData, { FilterParams } from "../../hooks/useTrafficData";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 ChartJS.register(...registerables);
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;
+
+const chartOptions = {
+    scales: {
+        x: {
+            title: {
+                display: true,
+                text: "Hour of the Day",
+                font: {
+                    size: 16,
+                },
+                color: "#666",
+            },
+        },
+        y: {
+            title: {
+                display: true,
+                text: "Average Speed (km/h)",
+                font: {
+                    size: 16,
+                },
+                color: "#666",
+            },
+            beginAtZero: true,
+        },
+    },
+    plugins: {
+        legend: {
+            display: true,
+            position: "top" as const,
+        },
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+};
 
 function TrafficData() {
     const deviceId = sessionStorage.getItem("deviceId") || "";
@@ -40,7 +74,8 @@ function TrafficData() {
     };
 
     const [filterParams, setFilterParams] = useState<FilterParams>({
-        selectedFilter: "pastWeek",
+        selectedFilter: "date",
+        specificDate: new Date(),
     });
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,26 +111,35 @@ function TrafficData() {
 
     const { trafficData } = useTrafficData(deviceId, filterParams);
 
-    const sortedTrafficData = trafficData.sort(
-        (a, b) =>
-            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
-
-    const chartData = {
-        labels: sortedTrafficData.map((data) =>
-            new Date(data.timestamp).toLocaleString()
-        ),
+    const [chartData, setChartData] = useState({
+        labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
         datasets: [
             {
-                label: "Speed",
-                data: sortedTrafficData.map((data) => data.speed),
+                label: "Average Speed (per hour)",
+                data: new Array(24).fill(0),
                 fill: false,
-                backgroundColor: "rgba(75,192,192,0.2)",
-                borderColor: "rgba(75,192,192,1)",
+                borderColor: "#04aa6d",
                 tension: 0.1,
             },
         ],
-    };
+    });
+
+    useEffect(() => {
+        const speedData = Array.from(
+            { length: 24 },
+            (_, hour) => trafficData[hour] || 0
+        );
+
+        setChartData((prevChartData) => ({
+            ...prevChartData,
+            datasets: [
+                {
+                    ...prevChartData.datasets[0],
+                    data: speedData,
+                },
+            ],
+        }));
+    }, [trafficData]);
 
     return (
         <div>
@@ -111,7 +155,6 @@ function TrafficData() {
                         name="optionsRadios"
                         id="pastWeek"
                         value="pastWeek"
-                        defaultChecked
                         onChange={handleFilterChange}
                     />
                     <label className="form-check-label">Past Week</label>
@@ -123,6 +166,7 @@ function TrafficData() {
                         name="optionsRadios"
                         id="date"
                         value="date"
+                        defaultChecked
                         onChange={handleFilterChange}
                     />
                     <label className="form-check-label">Date</label>
@@ -185,7 +229,7 @@ function TrafficData() {
             )}
             <div className={styles.scrollableChartContainer}>
                 <div className={styles.chartContainer}>
-                    <Line data={chartData} />
+                    <Line data={chartData} options={chartOptions} />
                 </div>
             </div>
         </div>

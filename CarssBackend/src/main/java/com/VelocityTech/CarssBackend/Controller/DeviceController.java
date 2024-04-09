@@ -3,6 +3,7 @@ package com.VelocityTech.CarssBackend.Controller;
 import com.VelocityTech.CarssBackend.Model.Device;
 import com.VelocityTech.CarssBackend.Model.DeviceMode;
 import com.VelocityTech.CarssBackend.Model.TrafficData;
+import com.VelocityTech.CarssBackend.Model.TrafficDataDTO;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
 import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
@@ -10,6 +11,7 @@ import com.VelocityTech.CarssBackend.ViewModel.LatestSpeedResp;
 import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
 import com.VelocityTech.CarssBackend.ViewModel.UpdateDeviceReqVM;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static com.VelocityTech.CarssBackend.Configuration.Constants.TimeSyncFormatter;
 
@@ -72,31 +75,33 @@ public class DeviceController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping("/{deviceId}/trafficData")
-    public ResponseEntity<List<TrafficData>> getTrafficDataByDeviceId(@PathVariable Long deviceId) {
-        List<TrafficData> trafficData = trafficDataService.findAllTrafficDataByDeviceId(deviceId);
-        return new ResponseEntity<>(trafficData, HttpStatus.OK);
-    }
-
-    @GetMapping("/{deviceId}/trafficData/dateRange")
-    public ResponseEntity<List<TrafficData>> getTrafficDataByDeviceIdAndDateRange(
-            @PathVariable Long deviceId,
-            @RequestParam(value = "startDate", required = true) String startDateString,
-            @RequestParam(value = "endDate", required = true) String endDateString) {
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate startDate = LocalDate.parse(startDateString, formatter);
-        LocalDate endDate = LocalDate.parse(endDateString, formatter);
-
-        List<TrafficData> trafficData = trafficDataService.findTrafficDataByDeviceIdAndDateRange(deviceId, startDate, endDate);
-        return new ResponseEntity<>(trafficData, HttpStatus.OK);
-    }
 
     @GetMapping("/owner/{ownerId}")
     public ResponseEntity<List<DeviceRespVM>> getAllDevicesForOwner(@PathVariable long ownerId) {
         List<DeviceRespVM> devices = deviceService.getAllDevicesForOwner(ownerId);
         return new ResponseEntity<>(devices, HttpStatus.OK);
     }
+
+    @GetMapping("/{deviceId}/trafficData")
+    public ResponseEntity<List<TrafficDataDTO>> readTrafficDataByDeviceAndFilter(
+            @PathVariable Long deviceId,
+            @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(value = "dayOfTheWeek", required = false) String dayOfTheWeek) {
+
+        if (date != null) {
+            return ResponseEntity.ok(trafficDataService.filterTrafficDataByDeviceAndDate(deviceId, date));
+        } else if (startDate != null && endDate != null) {
+            return ResponseEntity.ok(trafficDataService.findTrafficDataByDeviceIdAndDateRange(deviceId, startDate, endDate));
+        } else if (dayOfTheWeek != null) {
+            return ResponseEntity.ok(trafficDataService.findAverageSpeedByDayOfWeek(deviceId));
+        } else {
+            return ResponseEntity.ok(trafficDataService.findAllTrafficDataByDeviceId(deviceId));
+        }
+    }
+
+
 
     @GetMapping("/time")
     public ResponseEntity<String> getTime() {
