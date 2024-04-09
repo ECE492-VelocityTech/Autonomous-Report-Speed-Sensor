@@ -6,10 +6,7 @@ import com.VelocityTech.CarssBackend.Model.TrafficData;
 import com.VelocityTech.CarssBackend.Model.TrafficDataDTO;
 import com.VelocityTech.CarssBackend.Service.DeviceService;
 import com.VelocityTech.CarssBackend.Service.TrafficDataService;
-import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
-import com.VelocityTech.CarssBackend.ViewModel.LatestSpeedResp;
-import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
-import com.VelocityTech.CarssBackend.ViewModel.UpdateDeviceReqVM;
+import com.VelocityTech.CarssBackend.ViewModel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -94,9 +91,9 @@ public class DeviceController {
     }
 
     @GetMapping("/getLatestSpeed/{deviceId}")
-    public ResponseEntity<LatestSpeedResp> getLatestSpeed(@PathVariable long deviceId) {
-        double latestSpeed = deviceService.getLatestSpeed(deviceId);
-        return new ResponseEntity<>(new LatestSpeedResp(deviceId, latestSpeed), HttpStatus.OK);
+    public ResponseEntity<TrafficDataRespVM> getLatestSpeed(@PathVariable long deviceId) {
+        TrafficDataRespVM trafficDataRespVM = deviceService.getLatestSpeed(deviceId);
+        return new ResponseEntity<>(trafficDataRespVM, HttpStatus.OK);
     }
 
     @GetMapping("/{deviceId}/trafficData")
