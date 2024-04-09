@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { ServerUrl } from "../component/util/RestApi";
 
-interface TrafficDataProps {
-    id: number;
-    speed: number;
-    timestamp: string;
-    direction: string;
-}
+// interface TrafficDataProps {
+//     id: number;
+//     speed: number;
+//     timestamp: string;
+//     direction: string;
+// }
 
 interface UseTrafficDataReturn {
-    trafficData: TrafficDataProps[];
+    trafficData: Map<number, number>;
     isLoading: boolean;
     error: string | null;
 }
@@ -27,15 +27,17 @@ const useTrafficData = (
     deviceId: string,
     filterParams: FilterParams
 ): UseTrafficDataReturn => {
-    const [trafficData, setTrafficData] = useState<TrafficDataProps[]>([]);
+    const [trafficData, setTrafficData] = useState<Map<number, number>>(
+        new Map()
+    );
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const constructUrl = () => {
+            console.log(filterParams.selectedFilter);
             let url = `${BASE_URL}/${deviceId}/trafficData`;
             const params = new URLSearchParams();
-
             switch (filterParams.selectedFilter) {
                 case "date":
                     if (filterParams.specificDate) {
@@ -61,7 +63,17 @@ const useTrafficData = (
                 case "dayOfTheWeek":
                     url += "?dayOfTheWeek";
                     break;
+
                 case "all":
+                    break;
+                default:
+                    console.log("here");
+                    if (filterParams.specificDate) {
+                        const formattedDate = filterParams.specificDate
+                            .toISOString()
+                            .split("T")[0];
+                        params.append("date", formattedDate);
+                    }
                     break;
             }
 
@@ -69,7 +81,6 @@ const useTrafficData = (
                 url += `?${params}`;
             }
             console.log(url);
-
             return url;
         };
 
