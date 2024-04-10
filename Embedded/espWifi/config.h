@@ -19,7 +19,8 @@ struct Configuration {
 enum class DeviceStatus
 {
     Active,
-    Standby
+    Standby,
+    Test
 };
 
 extern DeviceStatus deviceStatus;
@@ -38,11 +39,5 @@ void clearConfig();
 void resetDevice();
 
 void parseServerResp(String& resp);
-
-void handleDeviceMode();
-
-void handleDeviceModeStandby();
-
-void handleDeviceModeActive();
 
 #endif // CONFIG_H

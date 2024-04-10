@@ -109,23 +109,8 @@ void parseServerResp(String& resp) {
         Serial.println("");
         deviceStatus = DeviceStatus::Standby;
         Serial.println("Setting to Standby");
+    } else if (resp == "Test") {
+        deviceStatus = DeviceStatus::Test;
+        Serial.println("Setting to Test");
     }
-}
-
-void handleDeviceMode() {
-    Serial.print("Device Mode: ");
-    Serial.println(deviceStatus == DeviceStatus::Standby ? "Standby" : "Active");
-    if (deviceStatus == DeviceStatus::Standby) {
-        handleDeviceModeStandby();
-    } else {
-        handleDeviceModeActive();
-    }
-}
-
-void handleDeviceModeStandby() {
-    digitalWrite(GREEN_LED, HIGH); // Turn on the LED
-}
-
-void handleDeviceModeActive() {
-    digitalWrite(GREEN_LED, LOW); // Turn on the LED
 }

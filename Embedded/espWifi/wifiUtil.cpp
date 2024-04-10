@@ -1,8 +1,8 @@
 #include "wifiUtil.h"
 
-const String WifiUtil::HearbeatEndpoint = "http://carss.chickenkiller.com/api/v1/devices/heartbeat/";
-const String WifiUtil::TrafficDataIndividualEndpoint = "http://carss.chickenkiller.com/api/v1/trafficData/device/";
-const String WifiUtil::TrafficDataBatchEndpoint = "http://carss.chickenkiller.com/api/v1/trafficData/batch/device/";
+const String WifiUtil::HearbeatEndpoint = BACKEND_BASE + "/api/v1/devices/heartbeat/";
+const String WifiUtil::TrafficDataIndividualEndpoint = BACKEND_BASE + "/api/v1/trafficData/device/";
+const String WifiUtil::TrafficDataBatchEndpoint = BACKEND_BASE + "/api/v1/trafficData/batch/device/";
 
 
 
@@ -196,9 +196,9 @@ String WifiUtil::makeHttpPostRequest(const String &endpoint, const String &jsonS
         Serial.println(httpResponseCode);
 
         // Print Response
-        Serial.print("HTTP Response:");
-        Serial.println(http.getString());
+        Serial.print("HTTP Response: ");
         result = http.getString();
+        Serial.println(result);
     }
     else
     {
@@ -210,7 +210,9 @@ String WifiUtil::makeHttpPostRequest(const String &endpoint, const String &jsonS
     }
 
     // Close the connection
+    Serial.print("-1-"); // TODO Please remove
     http.end();
+    Serial.print("-2-"); // TODO Please remove
     return result;
 }
 
@@ -263,7 +265,7 @@ void WifiUtil::sendSpeedDataIndividual(float& speed, String& timestamp, const Co
 
 String WifiUtil::sendSpeedDataBatch(const Configuration &config) {
     // Create a DynamicJsonDocument
-    DynamicJsonDocument doc(1024);
+    DynamicJsonDocument doc(512);
 
     // Create a JsonArray
     JsonArray data = doc.to<JsonArray>();

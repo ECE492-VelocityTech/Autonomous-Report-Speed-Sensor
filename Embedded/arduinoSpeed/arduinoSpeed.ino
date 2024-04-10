@@ -1,6 +1,6 @@
 #define PIN_NUMBER 4
 #define AVERAGE 4
-#define MINIMUM_SPEED 10.0
+#define MINIMUM_SPEED 10
 #define MAXIMUM_SPEED 150.0
 
 unsigned int doppler_div = 44;

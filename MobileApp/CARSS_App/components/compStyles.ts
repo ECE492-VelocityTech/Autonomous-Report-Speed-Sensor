@@ -11,7 +11,6 @@ const compStyles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20,
     },
 
     text: {
@@ -142,6 +141,32 @@ const compStyles = StyleSheet.create({
 
     picker: {
         width: 150,
+    },
+
+    iconContainer: {
+        marginLeft: 30,
+    },
+
+    icon: {
+        marginLeft: 30,
+    },
+
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    liveFeedNumber: {
+        fontSize: 75,
+        fontWeight: 'bold',
+    },
+
+    liveFeedContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
 
