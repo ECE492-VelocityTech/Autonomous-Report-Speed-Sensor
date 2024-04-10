@@ -27,7 +27,6 @@ const useTrafficData = (
 
     useEffect(() => {
         const constructUrl = () => {
-            console.log(filterParams.selectedFilter);
             let url = `${BASE_URL}/${deviceId}/trafficData`;
             const params = new URLSearchParams();
             switch (filterParams.selectedFilter) {
