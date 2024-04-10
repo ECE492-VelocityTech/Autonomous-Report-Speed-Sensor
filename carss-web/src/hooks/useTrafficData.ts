@@ -1,15 +1,9 @@
 import { useState, useEffect } from "react";
-import { ServerUrl } from "../component/util/RestApi";
-
-// interface TrafficDataProps {
-//     id: number;
-//     speed: number;
-//     timestamp: string;
-//     direction: string;
-// }
+import { ServerUrl } from "../util/RestApi";
+import { TrafficDataItem } from "../util/dataFormatter";
 
 interface UseTrafficDataReturn {
-    trafficData: Map<number, number>;
+    trafficData: TrafficDataItem[];
     isLoading: boolean;
     error: string | null;
 }
@@ -27,15 +21,12 @@ const useTrafficData = (
     deviceId: string,
     filterParams: FilterParams
 ): UseTrafficDataReturn => {
-    const [trafficData, setTrafficData] = useState<Map<number, number>>(
-        new Map()
-    );
+    const [trafficData, setTrafficData] = useState<TrafficDataItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const constructUrl = () => {
-            console.log(filterParams.selectedFilter);
             let url = `${BASE_URL}/${deviceId}/trafficData`;
             const params = new URLSearchParams();
             switch (filterParams.selectedFilter) {
@@ -67,7 +58,6 @@ const useTrafficData = (
                 case "all":
                     break;
                 default:
-                    console.log("here");
                     if (filterParams.specificDate) {
                         const formattedDate = filterParams.specificDate
                             .toISOString()
@@ -94,6 +84,7 @@ const useTrafficData = (
                 if (!response.ok) throw new Error("Failed to fetch data");
 
                 const data = await response.json();
+                console.log(data);
                 setTrafficData(data);
             } catch (error) {
                 setError(

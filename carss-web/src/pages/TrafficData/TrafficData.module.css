@@ -1,24 +1,57 @@
-.trafficDataContainer {
+.deviceContainer {
     background-size: cover;
     background-position: center;
-    height: 110vh;
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
+    padding: 10px;
+    width: 80%;
+    margin: 1rem auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #333;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.calendarIconWrapper {
-    position: relative;
-    cursor: pointer;
-}
-
-.calendarPopover {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 999;
+.deviceContainer h5,
+.deviceContainer h6 {
+    margin: 5px 0;
 }
 
 .chartContainer {
-    height: 400px; /* Adjust based on your preference */
+    width: 100%;
+    height: 400px;
+    margin-top: 20px;
+}
+
+.filtersContainer {
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.filterLabel {
+    display: flex;
+    gap: 5px;
+}
+
+.scrollableChartContainer {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.chartContainer {
+    padding: 5px;
+    min-width: 600px;
+    height: 400px;
+}
+
+.additionalFilter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px; /* Adds some space above the date picker */
 }

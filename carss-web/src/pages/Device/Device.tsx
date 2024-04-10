@@ -9,7 +9,6 @@ function Device() {
                     <h5 className={styles.cardTitle}>
                         Find a device to view traffic data
                     </h5>
-
                     <Map />
                 </div>
                 <div className={styles.cardFooter}>&copy; Velocity Tech</div>
