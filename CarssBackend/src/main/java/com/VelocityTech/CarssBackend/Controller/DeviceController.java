@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -83,8 +84,9 @@ public class DeviceController {
 
     @GetMapping("/time")
     public ResponseEntity<String> getTime() {
-        LocalDateTime date = LocalDateTime.now();
-        return new ResponseEntity<>(date.format(TimeSyncFormatter), HttpStatus.OK);
+        LocalDateTime date = LocalDateTime.now(ZoneId.of("America/Edmonton"));
+        String formattedTime = date.format(TimeSyncFormatter);
+        return new ResponseEntity<>(formattedTime, HttpStatus.OK);
     }
 
     @GetMapping("/heartbeat/{deviceId}")
