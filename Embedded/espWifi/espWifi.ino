@@ -26,15 +26,15 @@
 #define REQUEST_GET_TRAFFIC 2
 
 // String ssid     =  "iPhone (8)";
-String ssid = "Mehar iPhone";
+// String ssid = "Mehar iPhone";
 // String password =  "inioluwa";
-String password = "123456789";
-String deviceId = "11";
-String trafficDataEndpoint = "http://carss.chickenkiller.com/api/v1/trafficData";
-String ownerEndpoint = "http://carss.chickenkiller.com/api/v1/owners";
-String devicesEndpoint = "http://carss.chickenkiller.com/api/v1/devices";
-String timeEndpoint = "http://carss.chickenkiller.com/api/v1/devices/time";
-String hearbeatEndpoint = "http://carss.chickenkiller.com/api/v1/devices/hearbeat";
+// String password = "123456789";
+// String deviceId = "11";
+// String trafficDataEndpoint = "http://carss.chickenkiller.com/api/v1/trafficData";
+// String ownerEndpoint = "http://carss.chickenkiller.com/api/v1/owners";
+// String devicesEndpoint = "http://carss.chickenkiller.com/api/v1/devices";
+String timeEndpoint = BACKEND_BASE + "/api/v1/devices/time";
+// String hearbeatEndpoint = "http://carss.chickenkiller.com/api/v1/devices/hearbeat";
 
 const char *ntpServer = "pool.ntp.org";
 String currYear = "";
@@ -54,6 +54,8 @@ String aggrTimestamps[15]; // Array to store timestamps
 int speedIndex = 0; // Index to keep track of the number of speeds stored
 int aggrSpeedIndex = 0; // Index to keep track of the number of speeds stored
 
+const String ResetCommand = "CMD: ResetDevice";
+
 WiFiUDP udp;
 NTPClient timeClient(udp, ntpServer, gmtOffset_sec, daylightOffset_sec);
 
@@ -62,6 +64,8 @@ WifiUtil wifiUtil;
 const int btnGPIO = 0;
 const int GREEN_LED = 5; // D5 pin number
 int btnState = false;
+
+int loopDelay = 100;
 
 Configuration config;
 
@@ -83,7 +87,7 @@ void setup()
 
 void loop()
 {
-  if(Serial2.available() > 0)
+  while (Serial2.available() > 0)
   {
     // Speed Data avilable
     getSpeedData(timeClient, wifiUtil, config, currYear, currMonth, currDay);
@@ -92,12 +96,16 @@ void loop()
   updateTimeIfReq();
   wifiUtil.sendHearbeatIfRequired(config);
   handleDeviceMode();
-  delay(1000);
+  delay(loopDelay);
 }
 
 void resetDeviceIfRequested() {
   bool resetRequested = isResetRequested(btnGPIO);
-  if (resetRequested) { resetDevice(); } // Reset Device if reset requested;
+  if (resetRequested) { 
+    sendCommandToBleEsp(ResetCommand);
+    blinkGreenLed(2000);
+    resetDevice(); 
+  } // Reset Device if reset requested;
 }
 
 void initPins()
@@ -143,259 +151,298 @@ void initTime() {
   Serial2.println("Ready to receive speed data");
 }
 
-void getWifiCredentials()
-{
-  // Get WiFi username and password from user input
-  Serial.println("Ready to receive data");
-  while (Serial.available() == 0)
-  {
-    // Wait for user input
-  }
-  ssid = Serial.readStringUntil('\n');
-  Serial.println("Received SSID: " + ssid);
-  Serial.println("ACK");
-
-  //  Serial.println("Ready to receive Wifi password");
-  while (Serial.available() == 0)
-  {
-    // Wait for user input
-  }
-  password = Serial.readStringUntil('\n');
-  //  Serial.println("ACK");
+void handleDeviceMode() {
+    Serial.print("Device Mode: ");
+    Serial.println(deviceStatus == DeviceStatus::Standby ? "Standby" : "Active | Test");
+    if (deviceStatus == DeviceStatus::Standby) {
+      handleDeviceModeStandby();
+    } else if (deviceStatus == DeviceStatus::Active) {
+      handleDeviceModeActive();
+    } else if (deviceStatus == DeviceStatus::Test) {
+      handleDeviceModeTest();
+    }
 }
 
-void getDeviceId()
-{
-
-  Serial.println("Ready to receive device ID");
-  while (Serial.available() == 0)
-  {
-    // Wait for user input
-  }
-  deviceId = Serial.readStringUntil('\n');
-  Serial.println("Received Device ID: " + deviceId);
+void handleDeviceModeStandby() {
+    digitalWrite(GREEN_LED, LOW); // Turn on the LED
 }
 
-void connectToWifi()
-{
-  // Connect to WiFi
-  Serial.print("[WiFi] Connecting to ");
-  Serial.println(config.wifiName);
-  Serial.println(config.wifiPassword);
-  Serial.println(config.deviceId);
-
-  int tryDelay = 600;
-  int numberOfTries = 50;
-
-  while (true)
-  {
-    WiFi.begin(config.wifiName.c_str(), config.wifiPassword.c_str());
-
-    // Retry connection until successful or maximum tries reached
-    while (WiFi.status() != WL_CONNECTED && numberOfTries > 0)
-    {
-      Serial.print(".");
-      delay(tryDelay);
-      numberOfTries--;
-
-      if (WiFi.status() == WL_CONNECTED)
-      {
-        break; // Exit the loop if connected during retry
-      }
-
-      if (numberOfTries <= 0)
-      {
-        Serial.println("[WiFi] Failed to connect to WiFi!");
-        //        return;
-      }
-    }
-
-    // Check if connected and obtain IP address
-    if (WiFi.status() == WL_CONNECTED)
-    {
-      Serial.println();
-      Serial.println("[WiFi] WiFi is connected!");
-      Serial.print("[WiFi] IP address: ");
-      Serial.println(WiFi.localIP());
-
-      // Check if local IP is valid
-      if (WiFi.localIP() == IPAddress(0, 0, 0, 0))
-      {
-        Serial.println("[WiFi] WiFi connected, but local IP is 0.0.0.0. Retrying...");
-        numberOfTries = 50; // Reset the number of tries
-      }
-      else
-      {
-        return; // Exit the function if connection is successful
-      }
-    }
-
-    // Check WiFi status and handle different cases
-    switch (WiFi.status())
-    {
-    case WL_NO_SSID_AVAIL:
-      Serial.println("[WiFi] SSID not found");
-      break;
-    case WL_CONNECT_FAILED:
-      Serial.print("[WiFi] Failed - WiFi not connected! Reason: ");
-      break;
-    case WL_CONNECTION_LOST:
-      Serial.println("[WiFi] Connection was lost");
-      break;
-    case WL_SCAN_COMPLETED:
-      Serial.println("[WiFi] Scan is completed");
-      break;
-    case WL_DISCONNECTED:
-      Serial.println("[WiFi] WiFi is disconnected");
-      break;
-    default:
-      Serial.print("[WiFi] WiFi Status: ");
-      Serial.println(WiFi.status());
-      break;
-    }
-
-    delay(tryDelay);
-  }
+void handleDeviceModeActive() {
+    digitalWrite(GREEN_LED, LOW); // Turn off the LED
 }
 
-// void handleRequests()
+void blinkGreenLed(int duration) {
+  digitalWrite(GREEN_LED, HIGH); // Turn on the LED
+  delay(duration);
+  digitalWrite(GREEN_LED, LOW); // Turn off the LED
+  delay(duration);
+  digitalWrite(GREEN_LED, HIGH); // Turn on the LED
+}
+
+void handleDeviceModeTest() {
+  Serial.print("**TEST MODE**"); // TODO: please remove
+  digitalWrite(GREEN_LED, HIGH); // Turn on the LED
+  if (speedIndex > 0) {
+    Serial.print("**Sending test speed** ");
+    Serial.println(speedIndex);
+    PostSpeedData(wifiUtil, config);
+  }
+  Serial.println(" handleDeviceModeTest end"); // TODO: please remove
+}
+
+// void getWifiCredentials()
 // {
-//   int speedIndex = 0; // Index to keep track of the number of speeds stored
+//   // Get WiFi username and password from user input
+//   Serial.println("Ready to receive data");
+//   while (Serial.available() == 0)
+//   {
+//     // Wait for user input
+//   }
+//   ssid = Serial.readStringUntil('\n');
+//   Serial.println("Received SSID: " + ssid);
+//   Serial.println("ACK");
+
+//   //  Serial.println("Ready to receive Wifi password");
+//   while (Serial.available() == 0)
+//   {
+//     // Wait for user input
+//   }
+//   password = Serial.readStringUntil('\n');
+//   //  Serial.println("ACK");
+// }
+
+// void getDeviceId()
+// {
+
+//   Serial.println("Ready to receive device ID");
+//   while (Serial.available() == 0)
+//   {
+//     // Wait for user input
+//   }
+//   deviceId = Serial.readStringUntil('\n');
+//   Serial.println("Received Device ID: " + deviceId);
+// }
+
+// void connectToWifi()
+// {
+//   // Connect to WiFi
+//   Serial.print("[WiFi] Connecting to ");
+//   Serial.println(config.wifiName);
+//   Serial.println(config.wifiPassword);
+//   Serial.println(config.deviceId);
+
+//   int tryDelay = 600;
+//   int numberOfTries = 50;
 
 //   while (true)
 //   {
-//     // Read input from serial with timeout
-//     String input;
-//     while (Serial2.available() == 0)
+//     WiFi.begin(config.wifiName.c_str(), config.wifiPassword.c_str());
+
+//     // Retry connection until successful or maximum tries reached
+//     while (WiFi.status() != WL_CONNECTED && numberOfTries > 0)
 //     {
-//       delay(100); // Wait for input
-//       isResetRequested(btnGPIO);
-//     }
-//     input = Serial2.readStringUntil('\n');
+//       Serial.print(".");
+//       delay(tryDelay);
+//       numberOfTries--;
 
-//     // Check if input is a valid float
-//     float speed = 0.0;
-//     if (input.toFloat() != 0.0 || input.equals("0.0"))
-//     {                          // Check if input is a valid float or "0.0"
-//       speed = input.toFloat(); // Convert input string to float
-
-//       // Update speed array and timestamp array
-//       if (speedIndex < 10)
+//       if (WiFi.status() == WL_CONNECTED)
 //       {
-//         speeds[speedIndex] = speed;
-//         timestamps[speedIndex] = getTimestamp(); // Update timestamp for the current index
-//         speedIndex++;
+//         break; // Exit the loop if connected during retry
 //       }
 
-//       // Check if the speed array is full
-//       if (speedIndex == 10)
+//       if (numberOfTries <= 0)
 //       {
-//         addTrafficData(); // Call function to add traffic data
-//         speedIndex = 0;   // Reset speed index
+//         Serial.println("[WiFi] Failed to connect to WiFi!");
+//         //        return;
 //       }
 //     }
-//     else
+
+//     // Check if connected and obtain IP address
+//     if (WiFi.status() == WL_CONNECTED)
 //     {
-//       Serial.println("Invalid input: " + input); // Print error message for invalid input
+//       Serial.println();
+//       Serial.println("[WiFi] WiFi is connected!");
+//       Serial.print("[WiFi] IP address: ");
+//       Serial.println(WiFi.localIP());
+
+//       // Check if local IP is valid
+//       if (WiFi.localIP() == IPAddress(0, 0, 0, 0))
+//       {
+//         Serial.println("[WiFi] WiFi connected, but local IP is 0.0.0.0. Retrying...");
+//         numberOfTries = 50; // Reset the number of tries
+//       }
+//       else
+//       {
+//         return; // Exit the function if connection is successful
+//       }
 //     }
+
+//     // Check WiFi status and handle different cases
+//     switch (WiFi.status())
+//     {
+//     case WL_NO_SSID_AVAIL:
+//       Serial.println("[WiFi] SSID not found");
+//       break;
+//     case WL_CONNECT_FAILED:
+//       Serial.print("[WiFi] Failed - WiFi not connected! Reason: ");
+//       break;
+//     case WL_CONNECTION_LOST:
+//       Serial.println("[WiFi] Connection was lost");
+//       break;
+//     case WL_SCAN_COMPLETED:
+//       Serial.println("[WiFi] Scan is completed");
+//       break;
+//     case WL_DISCONNECTED:
+//       Serial.println("[WiFi] WiFi is disconnected");
+//       break;
+//     default:
+//       Serial.print("[WiFi] WiFi Status: ");
+//       Serial.println(WiFi.status());
+//       break;
+//     }
+
+//     delay(tryDelay);
 //   }
 // }
 
+// // void handleRequests()
+// // {
+// //   int speedIndex = 0; // Index to keep track of the number of speeds stored
+
+// //   while (true)
+// //   {
+// //     // Read input from serial with timeout
+// //     String input;
+// //     while (Serial2.available() == 0)
+// //     {
+// //       delay(100); // Wait for input
+// //       isResetRequested(btnGPIO);
+// //     }
+// //     input = Serial2.readStringUntil('\n');
+
+// //     // Check if input is a valid float
+// //     float speed = 0.0;
+// //     if (input.toFloat() != 0.0 || input.equals("0.0"))
+// //     {                          // Check if input is a valid float or "0.0"
+// //       speed = input.toFloat(); // Convert input string to float
+
+// //       // Update speed array and timestamp array
+// //       if (speedIndex < 10)
+// //       {
+// //         speeds[speedIndex] = speed;
+// //         timestamps[speedIndex] = getTimestamp(); // Update timestamp for the current index
+// //         speedIndex++;
+// //       }
+
+// //       // Check if the speed array is full
+// //       if (speedIndex == 10)
+// //       {
+// //         addTrafficData(); // Call function to add traffic data
+// //         speedIndex = 0;   // Reset speed index
+// //       }
+// //     }
+// //     else
+// //     {
+// //       Serial.println("Invalid input: " + input); // Print error message for invalid input
+// //     }
+// //   }
+// // }
 
 
 
-void makeHttpPostRequest(const String &endpoint, const String &jsonStr)
-{
 
-  while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0, 0, 0, 0))
-  {
-    connectToWifi();
-  }
+// void makeHttpPostRequest(const String &endpoint, const String &jsonStr)
+// {
 
-  if (jsonStr.length() == 0)
-  {
-    Serial.println("[HTTP] JSON string is empty or null");
-    return;
-  }
+//   while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0, 0, 0, 0))
+//   {
+//     connectToWifi();
+//   }
 
-  HTTPClient http;
-  http.setTimeout(10000);
+//   if (jsonStr.length() == 0)
+//   {
+//     Serial.println("[HTTP] JSON string is empty or null");
+//     return;
+//   }
 
-  // Start the HTTP request
-  http.begin(endpoint);
+//   HTTPClient http;
+//   http.setTimeout(10000);
 
-  // Set content type header
-  http.addHeader("Content-Type", "application/json");
+//   // Start the HTTP request
+//   http.begin(endpoint);
 
-  // Send the POST request with JSON body
-  int httpResponseCode = http.POST(jsonStr);
+//   // Set content type header
+//   http.addHeader("Content-Type", "application/json");
 
-  // Check for a successful response
-  if (httpResponseCode > 0)
-  {
-    Serial.print("HTTP Response Code: ");
-    Serial.println(httpResponseCode);
+//   // Send the POST request with JSON body
+//   int httpResponseCode = http.POST(jsonStr);
 
-    // Parse JSON response (if any)
-    DynamicJsonDocument doc(2048); // Adjust the size based on expected response size
-    deserializeJson(doc, http.getString());
+//   // Check for a successful response
+//   if (httpResponseCode > 0)
+//   {
+//     Serial.print("HTTP Response Code: ");
+//     Serial.println(httpResponseCode);
 
-    // Print JSON data
-    Serial.println("JSON Response:");
-    serializeJsonPretty(doc, Serial);
-  }
-  else
-  {
-    Serial.print("HTTP Request failed, error: ");
-    Serial.print(httpResponseCode);
-    Serial.print(" - ");
-    Serial.println(http.errorToString(httpResponseCode));
-  }
+//     // Parse JSON response (if any)
+//     DynamicJsonDocument doc(2048); // Adjust the size based on expected response size
+//     deserializeJson(doc, http.getString());
 
-  // Close the connection
-  http.end();
-}
+//     // Print JSON data
+//     Serial.println("JSON Response:");
+//     serializeJsonPretty(doc, Serial);
+//   }
+//   else
+//   {
+//     Serial.print("HTTP Request failed, error: ");
+//     Serial.print(httpResponseCode);
+//     Serial.print(" - ");
+//     Serial.println(http.errorToString(httpResponseCode));
+//   }
 
-void makeHttpGetRequest()
-{
-  while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0, 0, 0, 0))
-  {
-    connectToWifi();
-  }
-  HTTPClient http;
-  http.setTimeout(10000);
+//   // Close the connection
+//   http.end();
+// }
 
-  // Start the HTTP request
-  http.begin(trafficDataEndpoint);
+// void makeHttpGetRequest()
+// {
+//   while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0, 0, 0, 0))
+//   {
+//     connectToWifi();
+//   }
+//   HTTPClient http;
+//   http.setTimeout(10000);
 
-  // Send the GET request
-  int httpResponseCode = http.GET();
+//   // Start the HTTP request
+//   http.begin(trafficDataEndpoint);
 
-  // Check for a successful response
-  if (httpResponseCode > 0)
-  {
-    Serial.print("HTTP Response Code: ");
-    Serial.println(httpResponseCode);
+//   // Send the GET request
+//   int httpResponseCode = http.GET();
 
-    // Parse JSON
-    DynamicJsonDocument doc(2048); // Adjust the size based on your expected JSON response size
-    deserializeJson(doc, http.getString());
+//   // Check for a successful response
+//   if (httpResponseCode > 0)
+//   {
+//     Serial.print("HTTP Response Code: ");
+//     Serial.println(httpResponseCode);
 
-    // Print JSON data
-    Serial.println("JSON Response:");
-    serializeJsonPretty(doc, Serial);
-  }
-  else
-  {
-    Serial.print("HTTP Request failed, error: ");
-    Serial.print(httpResponseCode);
-    Serial.print(" - ");
-    Serial.println(http.errorToString(httpResponseCode));
-  }
+//     // Parse JSON
+//     DynamicJsonDocument doc(2048); // Adjust the size based on your expected JSON response size
+//     deserializeJson(doc, http.getString());
 
-  // Close the connection
-  http.end();
-}
+//     // Print JSON data
+//     Serial.println("JSON Response:");
+//     serializeJsonPretty(doc, Serial);
+//   }
+//   else
+//   {
+//     Serial.print("HTTP Request failed, error: ");
+//     Serial.print(httpResponseCode);
+//     Serial.print(" - ");
+//     Serial.println(http.errorToString(httpResponseCode));
+//   }
+
+//   // Close the connection
+//   http.end();
+// }
 
 void updateTimeIfReq() {
   // Get current time components
@@ -408,7 +455,7 @@ void updateTime()
 {
   while (WiFi.status() != WL_CONNECTED || WiFi.localIP() == IPAddress(0, 0, 0, 0))
   {
-    connectToWifi();
+    wifiUtil.connectToWifi(config);
   }
   HTTPClient http;
   http.setTimeout(10000);

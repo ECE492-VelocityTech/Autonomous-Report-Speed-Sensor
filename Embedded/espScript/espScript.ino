@@ -154,6 +154,7 @@ void loop()
         // Config present but WiFi not connected;
         // Enable BLE to reconfigure WiFi
         Serial.println("4");
+        // receiveCommandsFromWifiEsp();
     }
     delay(1000);
 }

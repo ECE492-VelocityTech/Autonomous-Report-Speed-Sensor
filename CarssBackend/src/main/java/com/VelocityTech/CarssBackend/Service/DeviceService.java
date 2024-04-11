@@ -1,11 +1,13 @@
 package com.VelocityTech.CarssBackend.Service;
 
+import com.VelocityTech.CarssBackend.Configuration.Constants;
 import com.VelocityTech.CarssBackend.Model.*;
 import com.VelocityTech.CarssBackend.Repository.DeviceRepository;
 import com.VelocityTech.CarssBackend.Repository.OwnerRepository;
 import com.VelocityTech.CarssBackend.Repository.TrafficDataRepository;
 import com.VelocityTech.CarssBackend.ViewModel.DeviceRespVM;
 import com.VelocityTech.CarssBackend.ViewModel.NewDeviceReqVM;
+import com.VelocityTech.CarssBackend.ViewModel.TrafficDataRespVM;
 import com.VelocityTech.CarssBackend.ViewModel.UpdateDeviceReqVM;
 import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import static com.VelocityTech.CarssBackend.Configuration.Constants.NullTime;
 
 @Service
 public class DeviceService {
@@ -162,15 +166,15 @@ public class DeviceService {
         deviceRepository.save(device);
     }
 
-    public double getLatestSpeed(long deviceId) {
+    public TrafficDataRespVM getLatestSpeed(long deviceId) {
         Optional<TrafficData> trafficDataOptional = trafficDataRepository.findLatestTrafficDataByDeviceId(deviceId);
         if (trafficDataOptional.isEmpty()) {
-            return -1;
+            return new TrafficDataRespVM(-1, NullTime);
         }
         TrafficData trafficData = trafficDataOptional.get();
-        if (!UtilService.isTrafficDataRecent(trafficData.getTimestamp())) {
-            return -1;
-        }
-        return trafficData.getSpeed();
+//        if (!UtilService.isTrafficDataRecent(trafficData.getTimestamp())) {
+//            return new TrafficDataRespVM(-1, NullTime);
+//        }
+        return TrafficDataRespVM.fromTrafficData(trafficData);
     }
 }

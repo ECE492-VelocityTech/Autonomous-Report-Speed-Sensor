@@ -87,6 +87,21 @@ const RestApi = {
         }
         // TODO: Handle error
     },
+
+    getLatestSpeed: async function(deviceId: number) {
+        const url = `${serverURL}/devices/getLatestSpeed/${deviceId}`;
+        const response = await fetch(url, {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (response.ok) {
+            return await response.json();
+        }
+        console.log("getAllDevicesForOwner ERR")
+        return [];
+    },
 };
 
 export default RestApi;

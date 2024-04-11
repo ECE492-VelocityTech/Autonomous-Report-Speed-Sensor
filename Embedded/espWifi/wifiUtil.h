@@ -9,6 +9,7 @@
 using namespace std;
 
 const int MAX_WIFI_ATTEMPTS = 10;
+const String BACKEND_BASE = "http://carss.chickenkiller.com/backend";
 
 extern float aggrSpeeds[15]; // Array to store speeds
 extern String aggrTimestamps[15]; // Array to store timestamps

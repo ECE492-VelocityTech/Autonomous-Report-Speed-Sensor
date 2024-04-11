@@ -16,6 +16,6 @@ public interface TrafficDataRepository extends JpaRepository<TrafficData,Long> {
     List<TrafficData> findByTimestampBetween(LocalDateTime startDate, LocalDateTime endDate);
     List<TrafficData> findByDeviceIdAndTimestampBetween(Long deviceId, LocalDateTime startDate, LocalDateTime endDate);
 
-    @Query("SELECT td FROM TrafficData td WHERE td.device.id = :deviceId ORDER BY td.timestamp DESC limit 1")
+    @Query("SELECT td FROM TrafficData td WHERE td.device.id = :deviceId ORDER BY td.timestamp DESC, td.speed DESC limit 1")
     Optional<TrafficData> findLatestTrafficDataByDeviceId(Long deviceId);
 }

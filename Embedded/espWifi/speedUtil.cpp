@@ -31,7 +31,6 @@ void getSpeedData(NTPClient &timeClient, WifiUtil &wifiUtil, const Configuration
             Serial.println("**Sending Speed Data**");
             PostSpeedData(wifiUtil, config);
             // addTrafficData(); // Call function to add traffic data
-            speedIndex = 0; // Reset speed index
         }
     }
     else
@@ -84,14 +83,7 @@ void PostSpeedData(WifiUtil &wifiUtil, const Configuration &config)
 {
     aggregateSpeedData();
     String resp = wifiUtil.sendSpeedDataBatch(config);
-    
-    // for (int i = 0; i < aggrSpeedIndex; i++)
-    // {
-    //     // Read speed and timestamp from arrays
-    //     float speed = aggrSpeeds[i];
-    //     String timestamp = aggrTimestamps[i];
-    //     wifiUtil.sendSpeedDataIndividual(speed, timestamp, config);
-    // }
+    speedIndex = 0; // Reset speed index
 }
 
 

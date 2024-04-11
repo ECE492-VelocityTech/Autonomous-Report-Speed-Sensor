@@ -14,6 +14,7 @@ export type UpdateDeviceReq = {
 export enum DeviceStatus {
     Active="Active",
     Standby="Standby",
+    Test="Test",
 }
 
 export const DeviceUtil = {
