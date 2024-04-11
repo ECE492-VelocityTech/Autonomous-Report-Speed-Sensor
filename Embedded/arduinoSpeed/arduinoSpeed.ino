@@ -77,7 +77,7 @@ void loop() {
   }
 
   receiveCommandsFromServer();
-  delay(100);
+  delay(10);
 }
 
 void initPins() {

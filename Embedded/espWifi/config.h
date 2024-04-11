@@ -32,6 +32,8 @@ void receiveConfigFromBleEsp(Configuration& config);
 
 void sendWifiStatusToBleEsp(bool connectionSuccess);
 
+void sendCommandToBleEsp(const String& command);
+
 bool isResetRequested(const int& buttonPin);
 
 void clearConfig();

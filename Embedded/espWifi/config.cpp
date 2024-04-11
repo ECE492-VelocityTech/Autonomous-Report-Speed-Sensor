@@ -95,7 +95,7 @@ void clearConfig() {
 }
 
 void resetDevice() {
-    EEPROM.put(0, 0); // Reset Marker Value
+    clearConfig();
     esp_restart();
 }
 
@@ -113,4 +113,9 @@ void parseServerResp(String& resp) {
         deviceStatus = DeviceStatus::Test;
         Serial.println("Setting to Test");
     }
+}
+
+
+void sendCommandToBleEsp(const String& command) {
+    Serial.println(command);
 }

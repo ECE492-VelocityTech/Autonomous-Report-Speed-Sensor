@@ -54,6 +54,8 @@ String aggrTimestamps[15]; // Array to store timestamps
 int speedIndex = 0; // Index to keep track of the number of speeds stored
 int aggrSpeedIndex = 0; // Index to keep track of the number of speeds stored
 
+const String ResetCommand = "CMD: ResetDevice";
+
 WiFiUDP udp;
 NTPClient timeClient(udp, ntpServer, gmtOffset_sec, daylightOffset_sec);
 
@@ -63,7 +65,7 @@ const int btnGPIO = 0;
 const int GREEN_LED = 5; // D5 pin number
 int btnState = false;
 
-int loopDelay = 1000;
+int loopDelay = 100;
 
 Configuration config;
 
@@ -99,7 +101,11 @@ void loop()
 
 void resetDeviceIfRequested() {
   bool resetRequested = isResetRequested(btnGPIO);
-  if (resetRequested) { resetDevice(); } // Reset Device if reset requested;
+  if (resetRequested) { 
+    sendCommandToBleEsp(ResetCommand);
+    blinkGreenLed(2000);
+    resetDevice(); 
+  } // Reset Device if reset requested;
 }
 
 void initPins()
@@ -162,7 +168,15 @@ void handleDeviceModeStandby() {
 }
 
 void handleDeviceModeActive() {
-    digitalWrite(GREEN_LED, LOW); // Turn on the LED
+    digitalWrite(GREEN_LED, LOW); // Turn off the LED
+}
+
+void blinkGreenLed(int duration) {
+  digitalWrite(GREEN_LED, HIGH); // Turn on the LED
+  delay(duration);
+  digitalWrite(GREEN_LED, LOW); // Turn off the LED
+  delay(duration);
+  digitalWrite(GREEN_LED, HIGH); // Turn on the LED
 }
 
 void handleDeviceModeTest() {
