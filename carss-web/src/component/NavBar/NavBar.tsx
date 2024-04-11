@@ -7,7 +7,7 @@ const NavBar = () => {
 
     const links = [
         { path: "/device", name: "Device" },
-        // { path: "/trafficData", name: "Traffic Data" },
+        { path: "/liveSpeed", name: "Live Speed" },
         { path: "/about", name: "About" },
     ];
 

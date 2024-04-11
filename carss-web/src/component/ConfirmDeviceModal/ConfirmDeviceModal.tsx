@@ -5,24 +5,23 @@ import { useNavigate } from "react-router-dom";
 interface ConfirmDeviceModalProps {
     deviceId: number;
     setIsOpen: (isOpen: boolean) => void;
-    deviceName: string;
     address: string;
+    speedLimit: number;
 }
 
 const ConfirmDeviceModal = ({
     deviceId,
     setIsOpen,
-    deviceName,
     address,
+    speedLimit,
 }: ConfirmDeviceModalProps) => {
     const navigate = useNavigate();
 
     function handleConfirm() {
         setIsOpen(false);
         sessionStorage.setItem("deviceId", deviceId.toString());
-        sessionStorage.setItem("deviceName", deviceName);
         sessionStorage.setItem("deviceAddress", address);
-        sessionStorage.setItem("startDate", "");
+        sessionStorage.setItem("speedLimit", speedLimit.toString());
 
         navigate(`/trafficData`);
     }
@@ -33,9 +32,7 @@ const ConfirmDeviceModal = ({
             <div className={styles.centered}>
                 <div className={styles.modal}>
                     <div className={styles.modalHeader}>
-                        <h5 className={styles.heading}>
-                            Device: {deviceName}
-                        </h5>
+                        <h5 className={styles.heading}>Device: {deviceId}</h5>
                         <button
                             className={styles.closeBtn}
                             onClick={() => setIsOpen(false)}
