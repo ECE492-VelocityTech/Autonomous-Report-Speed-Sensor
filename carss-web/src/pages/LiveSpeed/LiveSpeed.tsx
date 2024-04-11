@@ -2,7 +2,9 @@ import useLiveSpeed from "../../hooks/useLiveSpeed";
 import styles from "./LiveSpeed.module.css";
 
 const LiveSpeed = () => {
-    const liveSpeed = useLiveSpeed(26);
+    const liveSpeed = useLiveSpeed(
+        parseInt(sessionStorage.getItem("deviceId") || "0")
+    );
     const speedLimit = 6;
 
     const timestamp = new Date(liveSpeed.timestamp);
