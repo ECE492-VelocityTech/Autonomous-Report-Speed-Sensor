@@ -106,6 +106,10 @@ function Map() {
                         onClick={() => {
                             setIsOpen(true);
                             setDeviceId(coordinate.id);
+                            sessionStorage.setItem(
+                                "deviceId",
+                                coordinate.id.toString()
+                            );
                             setDeviceAddress(coordinate.address);
                             setSpeedLimit(coordinate.speedLimit);
                         }}
