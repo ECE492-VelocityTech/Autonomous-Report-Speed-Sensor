@@ -1,7 +1,10 @@
 #define PIN_NUMBER 4
 #define AVERAGE 4
-#define MINIMUM_SPEED 10
-#define MAXIMUM_SPEED 150.0
+// #define MINIMUM_SPEED 10
+// #define MAXIMUM_SPEED 150.0
+
+unsigned int MINIMUM_SPEED = 10;
+unsigned int MAXIMUM_SPEED = 150.0;
 
 unsigned int doppler_div = 44;
 unsigned int samples[AVERAGE];
@@ -10,6 +13,7 @@ unsigned int x;
 void setup() {
   Serial.begin(9600);
   pinMode(PIN_NUMBER, INPUT);
+  initPins();
 
   while (true) {
     while (Serial.available() == 0) {
@@ -35,7 +39,7 @@ void setup() {
 
 void loop() {  
   // Proceed with the rest of the code
-  noInterrupts();
+  // noInterrupts();
   pulseIn(PIN_NUMBER, HIGH);
   unsigned int pulse_length = 0;
   
@@ -45,7 +49,7 @@ void loop() {
     pulse_length += pulseIn(PIN_NUMBER, LOW);    
     samples[x] =  pulse_length;
   }
-  interrupts();
+  // interrupts();
 
   // Check for consistency
   bool samples_ok = true;
@@ -71,7 +75,34 @@ void loop() {
       sendDataToServer(speed);
     }
   }
+
+  receiveCommandsFromServer();
+  delay(100);
 }
+
+void initPins() {
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+
+void receiveCommandsFromServer() {
+  if (Serial.available() <= 0) { return; }
+  String buff = Serial.readStringUntil('\n');
+  if (buff.startsWith("CMD: TestCars")) {
+    MINIMUM_SPEED = 10;
+    makeLEDBlink(1000);
+  } else if (buff.startsWith("CMD: TestPeople")) {
+    MINIMUM_SPEED = 3;
+    makeLEDBlink(2000);
+  }
+}
+
+
+void makeLEDBlink(int duration) {
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(duration);
+  digitalWrite(LED_BUILTIN, LOW);
+}
+
 
 void sendDataToServer(float speed) {
   // Send speed data to server
